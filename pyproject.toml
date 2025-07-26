@@ -1,0 +1,5 @@
+[tool.ruff]
+line-length = 107
+
+[tool.ruff.format]
+indent-style = "space"

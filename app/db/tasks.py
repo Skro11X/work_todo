@@ -1,18 +1,19 @@
-from typing import List, Any, Dict
-from sqlalchemy import text, TextClause
+from typing import List
+
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.tasks.schemas import CreateTask, FilterTask, Task
+
 from app.db.utils import connection
+from app.tasks.schemas import CreateTask, FilterTask, Task
 
 
 class TaskDB:
-
     @classmethod
     @connection
     async def create_task(cls, *, session: AsyncSession, task: CreateTask):
         params = task.model_dump()
-        params['status'] = 0
+        params["status"] = 0
         try:
             stmt = text(
                 """
@@ -42,22 +43,20 @@ class TaskDB:
             where_conditions.append(f"{key} regexp :{key}")
 
         if task.create_lt:
-            where_conditions.append(f"create_datetime < :create_lt")
-            active_filtres['create_lt'] = task.create_lt
+            where_conditions.append("create_datetime < :create_lt")
+            active_filtres["create_lt"] = task.create_lt
         if task.create_gt:
-            where_conditions.append(f"create_datetime > :create_gt")
-            active_filtres['create_gt'] = task.create_gt
+            where_conditions.append("create_datetime > :create_gt")
+            active_filtres["create_gt"] = task.create_gt
 
         active_filtres.update(task.model_dump(exclude_none=True))
-
-
 
         where_substr = ""
         if where_conditions:
             where_substr = "WHERE " + " AND ".join(where_conditions)
 
         try:
-            stmt = text(f'{base_query} {where_substr}')
+            stmt = text(f"{base_query} {where_substr}")
             result = await session.execute(stmt, active_filtres)
             # list_of_tasks = [Task(**row) for row in result.mappings().all()]
             list_of_tasks = [Task(**row._mapping) for row in result.fetchall()]
