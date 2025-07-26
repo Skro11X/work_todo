@@ -2,7 +2,7 @@ from typing import List, Any, Dict
 from sqlalchemy import text, TextClause
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.tasks.pydentic_models import CreateTask
+from app.tasks.pydentic_models import CreateTask, FilterTask, Task
 from app.db.utils import connection
 
 
@@ -10,37 +10,60 @@ class TaskDB:
 
     @classmethod
     @connection
-    async def create_task(cls, *args, session: AsyncSession, task: CreateTask):
-        session.execute(text("insert "))
-
+    async def create_task(cls, *, session: AsyncSession, task: CreateTask):
+        params = task.model_dump()
+        params['status'] = 0
         try:
-        # 1. SQL-запрос с именованными параметрами (:title, :description)
-        # Это защищает от SQL-инъекций.
-        # RETURNING id; - это конструкция PostgreSQL для получения ID вставленной строки.
-        # Для других СУБД (MySQL, SQLite) может потребоваться другой подход.
-            stmt: TextClause = text(
+            stmt = text(
                 """
-                    INSERT
-                    INTO
-                    tasks(:list_of_fields)
-                    VALUES(:list_of_values)
-                    RETURNING
-                    id;
+                    INSERT INTO tasks (title, project, organisation, description, status)
+                    VALUES (:title, :project, :organisation, :description, :status)
+                    RETURNING id;
                 """
             )
-            list_of_fields = ' '.join(task.model_dump().keys())
-            list_of_values = ' '.join(task.model_dump().value())
-
-            # 3. Выполнение запроса с параметрами
-            result = await session.execute(stmt, list_of_fields=list_of_fields, list_of_values=list_of_values)
-            await session.commit() # Фиксация транзакции
-
-            # 4. Получение ID созданной записи
-            created_task_id = result.scalar_one_or_none()
+            result = await session.execute(stmt, params)
+            await session.commit()
+            created_task_id = result.scalar_one()
             return created_task_id
 
         except SQLAlchemyError as e:
-            # В случае ошибки откатываем транзакцию и логируем ошибку
+            await session.rollback()
+            print(f"Ошибка при создании задачи: {e}")
+            return None
+
+    @classmethod
+    @connection
+    async def get_list_of_tasks(cls, *, session: AsyncSession, task: FilterTask) -> List[Task]:
+        where_conditions = list()
+        active_filtres = dict()
+        base_query = """SELECT * FROM tasks"""
+
+        for key in active_filtres.keys():
+            where_conditions.append(f"{key} regexp :{key}")
+
+        if task.create_lt:
+            where_conditions.append(f"create_datetime < :create_lt")
+            active_filtres['create_lt'] = task.create_lt
+        if task.create_gt:
+            where_conditions.append(f"create_datetime > :create_gt")
+            active_filtres['create_gt'] = task.create_gt
+
+        active_filtres.update(task.model_dump(exclude_none=True))
+
+
+
+        where_substr = ""
+        if where_conditions:
+            where_substr = "WHERE " + " AND ".join(where_conditions)
+
+        try:
+            stmt = text(f'{base_query} {where_substr}')
+            result = await session.execute(stmt, active_filtres)
+            # list_of_tasks = [Task(**row) for row in result.mappings().all()]
+            list_of_tasks = [Task(**row._mapping) for row in result.fetchall()]
+            return list_of_tasks
+
+        except SQLAlchemyError as e:
             await session.rollback()
             print(f"Ошибка при создании задачи: {e}")
             return None
