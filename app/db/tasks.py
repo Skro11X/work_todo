@@ -2,7 +2,7 @@ from typing import List, Any, Dict
 from sqlalchemy import text, TextClause
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.tasks.pydentic_models import CreateTask, FilterTask, Task
+from app.tasks.schemas import CreateTask, FilterTask, Task
 from app.db.utils import connection
 
 
