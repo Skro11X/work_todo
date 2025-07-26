@@ -6,3 +6,5 @@ pydantic
 pydantic-settings
 python-multipart
 sentry-sdk
+aiofiles
+aiosqlite
