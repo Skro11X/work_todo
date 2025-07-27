@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="tabs">
+                <button class="tab-button active" id="newTab">Новая</button>
+                <button class="tab-button" id="openTab">Открытые</button>
+                <button class="tab-button" id="closedTab">Закрытые</button>
+            </div>
+            <div class="logo">V</div>
+        </header>
+
+        <main class="content">
+            <!-- Вкладка "Новая" -->
+            <div id="newContent" class="tab-content">
+                <form class="new-task-form">
+                    <div class="form-row">
+                        <label for="lpu">ЛПУ:</label>
+                        <!-- Значение задается из JS, data-org-code хранит код для отправки -->
+                        <input type="text" id="lpu" value="ГП 17" data-org-code="p17" readonly>
+                    </div>
+                    <div class="form-row">
+                        <label for="taskType">Тип запроса:</label>
+                        <select id="taskType">
+                            <option value="issue">Проблема</option>
+                            <option value="question">Вопрос</option>
+                            <option value="feature">Предложение</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="subject">Тема:</label>
+                        <input type="text" id="subject" required minlength="3">
+                    </div>
+                    <div class="form-row text-area-row">
+                        <label for="text">Текст:</label>
+                        <textarea id="text" required></textarea>
+                    </div>
+                    <div class="form-row file-upload-row">
+                        <label for="files">Файлы:</label>
+                        <div class="file-area">
+                            <div class="file-drop-area" id="fileDropArea">
+                                Кликните для выбора файлов или просто перетащите их сюда
+                                <input type="file" id="files" multiple style="display: none;">
+                                <span class="download-icon">↓</span>
+                            </div>
+                            <!-- Контейнер для списка выбранных файлов -->
+                            <div id="fileListContainer"></div>
+                        </div>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="action-button">Отправить</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Вкладка "Открытые" -->
+            <div id="openContent" class="tab-content hidden">
+                <div class="left-panel">
+                    <!-- Сюда будут загружаться открытые задачи -->
+                </div>
+                <div class="right-panel">
+
+                </div>
+            </div>
+
+            <!-- Вкладка "Закрытые" -->
+            <div id="closedContent" class="tab-content hidden">
+                <div class="left-panel">
+                    <!-- Сюда будут загружаться закрытые задачи -->
+                </div>
+                <div class="right-panel">
+                    <div class="right-panel-footer">
+                        <button type="button" class="action-button">Поиск</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
