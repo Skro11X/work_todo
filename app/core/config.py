@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "WorkTodo API"
+    PROJECT_NAME: str = "TaskMaster API"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"  # local, development, production
 
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"  # Для локальной разработки
+    DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
 
     # File Uploads
     UPLOAD_DIR: Path = Path("uploads")

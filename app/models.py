@@ -1,12 +1,14 @@
 import enum
+from typing import Optional
 
+from sqlalchemy import Enum, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, Text, Enum
 
 from app.db.utils import Base
 
 
 class Status(str, enum.Enum):
+    NEW = "new"
     IN_PROGRESS = "in_progress"
     DONE = "done"
 
@@ -16,8 +18,8 @@ class Task(Base):
     project: Mapped[str] = mapped_column(Text)
     organisation: Mapped[str] = mapped_column(Text)
     description: Mapped[str] = mapped_column(Text)
-    status: Mapped[int] = mapped_column(
-        Enum(Status), nullable=False, default=Status.IN_PROGRESS
+    status: Mapped[Status] = mapped_column(
+        Enum(Status), nullable=False, default=Status.NEW
     )
 
     files: Mapped[list["File"]] = relationship(
@@ -28,7 +30,8 @@ class Task(Base):
 class File(Base):
     filename: Mapped[str] = mapped_column(Text)
     filepath: Mapped[str] = mapped_column(Text)
-    mimetype: Mapped[str] = mapped_column(Text)
+    mimetype: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    size: Mapped[Optional[int]] = mapped_column(nullable=True, default=0)
 
     task_id: Mapped[int] = mapped_column(ForeignKey("task.id"))
 

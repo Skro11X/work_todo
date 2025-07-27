@@ -7,11 +7,12 @@ const TaskStatus = {
 };
 
 class FileModel {
-    constructor({ id, filename, mimetype, url }) {
+    constructor({ id, filename, mimetype, size }) {
         this.id = id;
         this.filename = filename;
         this.mimetype = mimetype;
-        this.url = url;
+        this.size = size || 0;
+        this.url = `${API_BASE_URL}/tasks/files/${id}`; // Генерируем URL на клиенте
     }
 }
 
@@ -64,27 +65,31 @@ const api = {
     async uploadFilesForTask(taskId, files) {
         if (files.length === 0) return [];
 
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files', file, file.name);
-        });
+        // Загружаем файлы по одному, так как API принимает один файл за раз
+        const uploadedFiles = [];
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file, file.name); // Изменили с 'files' на 'file'
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/files/`, {
-                method: 'POST',
-                body: formData, // Отправляем все файлы одним запросом
-            });
+            try {
+                const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/files/`, {
+                    method: 'POST',
+                    body: formData,
+                });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Не удалось загрузить файлы');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Не удалось загрузить файл');
+                }
+                const data = await response.json();
+                uploadedFiles.push(new FileModel(data));
+            } catch (error) {
+                console.error(`Ошибка при загрузке файла ${file.name} для задачи ${taskId}:`, error);
+                throw error;
             }
-            const data = await response.json();
-            return data.map(file => new FileModel(file));
-        } catch (error) {
-            console.error(`Ошибка при загрузке файлов для задачи ${taskId}:`, error);
-            throw error;
         }
+        
+        return uploadedFiles;
     },
 
     /**
@@ -108,18 +113,21 @@ const api = {
     },
 
     /**
-     * Получает список открытых задач.
+     * Получает список открытых задач (статусы: NEW и IN_PROGRESS).
+     * @param {string} searchQuery - Поисковый запрос (опционально).
      * @returns {Promise<TaskModel[]>}
      */
-    async getOpenTasks() {
+    async getOpenTasks(searchQuery = '') {
         try {
-            const response = await fetch(`${API_BASE_URL}/tasks/?status=${TaskStatus.IN_PROGRESS}`);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Не удалось получить открытые задачи');
-            }
-            const data = await response.json();
-            return data.map(task => new TaskModel(task));
+            // Делаем два отдельных запроса для разных статусов
+            const [newTasks, inProgressTasks] = await Promise.all([
+                this.getTasksByStatus(TaskStatus.NEW, searchQuery),
+                this.getTasksByStatus(TaskStatus.IN_PROGRESS, searchQuery)
+            ]);
+            
+            // Объединяем результаты и сортируем по дате обновления (новые сверху)
+            const allTasks = [...newTasks, ...inProgressTasks];
+            return allTasks.sort((a, b) => b.updated_at - a.updated_at);
         } catch (error) {
             console.error('Ошибка при получении открытых задач:', error);
             throw error;
@@ -128,19 +136,40 @@ const api = {
 
     /**
      * Получает список закрытых задач.
+     * @param {string} searchQuery - Поисковый запрос (опционально).
      * @returns {Promise<TaskModel[]>}
      */
-    async getClosedTasks() {
+    async getClosedTasks(searchQuery = '') {
         try {
-            const response = await fetch(`${API_BASE_URL}/tasks/?status=${TaskStatus.DONE}`);
+            return await this.getTasksByStatus(TaskStatus.DONE, searchQuery);
+        } catch (error) {
+            console.error('Ошибка при получении закрытых задач:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Получает задачи по статусу с опциональным поиском.
+     * @param {string} status - Статус задач.
+     * @param {string} searchQuery - Поисковый запрос (опционально).
+     * @returns {Promise<TaskModel[]>}
+     */
+    async getTasksByStatus(status, searchQuery = '') {
+        try {
+            let url = `${API_BASE_URL}/tasks/?status=${status}`;
+            if (searchQuery.trim()) {
+                // Ищем по заголовку (title)
+                url += `&title=${encodeURIComponent(searchQuery.trim())}`;
+            }
+            const response = await fetch(url);
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || 'Не удалось получить закрытые задачи');
+                throw new Error(errorData.detail || `Не удалось получить задачи со статусом ${status}`);
             }
             const data = await response.json();
             return data.map(task => new TaskModel(task));
         } catch (error) {
-            console.error('Ошибка при получении закрытых задач:', error);
+            console.error(`Ошибка при получении задач со статусом ${status}:`, error);
             throw error;
         }
     },

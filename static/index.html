@@ -14,7 +14,7 @@
                 <button class="tab-button" id="openTab">Открытые</button>
                 <button class="tab-button" id="closedTab">Закрытые</button>
             </div>
-            <div class="logo">V</div>
+            <div class="logo">VistaTask</div>
         </header>
 
         <main class="content">
@@ -27,11 +27,13 @@
                         <input type="text" id="lpu" value="ГП 17" data-org-code="p17" readonly>
                     </div>
                     <div class="form-row">
-                        <label for="taskType">Тип запроса:</label>
+                        <label for="taskType">Проект:</label>
                         <select id="taskType">
-                            <option value="issue">Проблема</option>
-                            <option value="question">Вопрос</option>
-                            <option value="feature">Предложение</option>
+                            <option value="web-reports">Веп Ачоты</option>
+                            <option value="vista-desktop">боже храни python2.7 (деск)</option>
+                            <option value="iemk">(вопросы ТОЛЬКО по IEMKv2py3)</option>
+                            <option value="doctorroom">боже храни php (doctorroom)</option>
+                            <option value="templates">шаблоны...</option>
                         </select>
                     </div>
                     <div class="form-row">
@@ -63,25 +65,66 @@
             <!-- Вкладка "Открытые" -->
             <div id="openContent" class="tab-content hidden">
                 <div class="left-panel">
-                    <!-- Сюда будут загружаться открытые задачи -->
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Поиск задач..." class="search-input">
+                    </div>
+                    <div class="tasks-list">
+                        <!-- Сюда будут загружаться открытые задачи -->
+                    </div>
                 </div>
                 <div class="right-panel">
-
+                    <div class="right-panel-title">Выберите задачу</div>
+                    <div class="details"></div>
+                    <div class="right-panel-description"></div>
+                    <div class="files-section">
+                        <h3>Прикрепленные файлы</h3>
+                        <div class="files-grid">
+                            <!-- Сюда будут загружаться файлы -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Вкладка "Закрытые" -->
             <div id="closedContent" class="tab-content hidden">
                 <div class="left-panel">
-                    <!-- Сюда будут загружаться закрытые задачи -->
+                    <div class="search-container">
+                        <input type="text" id="searchInputClosed" placeholder="Поиск задач..." class="search-input">
+                    </div>
+                    <div class="tasks-list">
+                        <!-- Сюда будут загружаться закрытые задачи -->
+                    </div>
                 </div>
                 <div class="right-panel">
-                    <div class="right-panel-footer">
-                        <button type="button" class="action-button">Поиск</button>
+                    <div class="right-panel-title">Выберите задачу</div>
+                    <div class="details"></div>
+                    <div class="right-panel-description"></div>
+                    <div class="files-section">
+                        <h3>Прикрепленные файлы</h3>
+                        <div class="files-grid">
+                            <!-- Сюда будут загружаться файлы -->
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
+
+        <!-- Modal для полноэкранного просмотра изображений -->
+        <div id="imageModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <img id="modalImage" src="" alt="">
+                <div class="modal-info">
+                    <div class="modal-filename"></div>
+                    <div class="modal-actions">
+                        <a id="modalDownload" href="" download class="modal-button">Скачать</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toastContainer" class="toast-container"></div>
     </div>
 
     <script type="module" src="/static/js/main.js"></script>

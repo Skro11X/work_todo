@@ -1,16 +1,31 @@
+from contextlib import asynccontextmanager
+
 import sentry_sdk
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
+from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import router as api_router
+from app.api.middleware import logging_middleware
 from app.core.config import settings
+from app.core.logging_config import setup_logging
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return "1"  # f"{route.tags[0]}-{route.name}"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    setup_logging()
+
+    yield
+
+    logger.info("Завершение работы приложения...")
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -20,7 +35,25 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
+    lifespan=lifespan,
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+):
+    logger.error(f"Content-Type: {request.headers.get('content-type')}")
+    logger.error(f"Method: {request.method}")
+    logger.error(f"URL: {request.url}")
+
+    logger.error(
+        f"Validation error on {request.method} {request.url}: {exc.errors()}"
+    )
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "Ошибка валидации данных", "errors": exc.errors()},
+    )
 
 
 app.add_middleware(
@@ -31,17 +64,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.middleware("http")(logging_middleware)
+
 # Подключение статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # Маршрут для главной страницы
-@app.get("/")
+web_router = APIRouter()
+
+
+@web_router.get("/")
 async def read_index():
     return FileResponse("static/index.html")
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(web_router)
 
 
 if __name__ == "__main__":

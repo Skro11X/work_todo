@@ -8,4 +8,4 @@ python-multipart
 sentry-sdk
 aiofiles
 aiosqlite
-
+loguru
