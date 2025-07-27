@@ -32,4 +32,4 @@ class File(Base):
 
     task_id: Mapped[int] = mapped_column(ForeignKey("task.id"))
 
-    task: Mapped["Task"] = relationship("Task", back_populates="task")
+    task: Mapped["Task"] = relationship("Task", back_populates="files")

@@ -15,19 +15,24 @@ class TaskRepository:
         self._session: AsyncSession = session
 
     async def create_new_task(self, task: TaskCreate) -> int:
-        stmt = insert(Task).values(task.model_dump(exclude_unset=True))
+        stmt = (
+            insert(Task)
+            .values(**task.model_dump(exclude_unset=True))
+            .returning(Task.id)
+        )
         result = await self._session.execute(stmt)
-        return result.fetchone().id
+        await self._session.commit()
+        return result.scalar()
 
     async def get_task_by_id(self, task_id: int) -> Task:
         stmt = select(Task).where(Task.id == task_id)
         result = await self._session.execute(stmt)
-        return result.fetchone()
+        return result.scalar()
 
     async def list_all(self) -> List[Task]:
         stmt = select(Task)
         result = await self._session.execute(stmt)
-        return result.fetchall()
+        return result.scalars().all()
 
     async def update_by_id(
         self, task_id: int, update_fields: TaskUpdate
@@ -35,7 +40,7 @@ class TaskRepository:
         user = await self._session.get(Task, task_id)
         if not user:
             return None
-        update_dict = TaskUpdate.model_dump(exclude_unset=True, exclude_none=True)
+        update_dict = update_fields.model_dump(exclude_unset=True, exclude_none=True)
         for key, value in update_dict.items():
             if hasattr(user, key):
                 setattr(user, key, value)
@@ -45,4 +50,5 @@ class TaskRepository:
     async def delete_by_id(self, task_id: int) -> bool:
         stmt = delete(Task).where(Task.id == task_id)
         operation_result = await self._session.execute(stmt)
-        return operation_result.rowcount() > 0
+        await self._session.commit()
+        return operation_result.rowcount > 0
