@@ -1,7 +1,7 @@
 # app/core/config.py
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -22,6 +22,10 @@ class Settings(BaseSettings):
 
     # File Uploads
     UPLOAD_DIR: Path = Path("uploads")
+
+    ORGANISATION_MAP: Dict[str, str] = {
+        "p17": "ГП 17",
+    }
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
