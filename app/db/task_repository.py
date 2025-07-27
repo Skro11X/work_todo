@@ -1,16 +1,13 @@
 from typing import List, Optional
 
-from sqlalchemy import text, delete, select, insert
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from app.models import Task
-from app.tasks.schemas import TaskUpdate, TaskCreate
+from app.tasks.schemas import TaskCreate, TaskUpdate
 
 
 class TaskRepository:
-
     def __init__(self, session: AsyncSession):
         self._session: AsyncSession = session
 

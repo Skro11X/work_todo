@@ -1,6 +1,8 @@
 import sentry_sdk
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.routing import APIRoute
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import router as api_router
@@ -8,7 +10,7 @@ from app.core.config import settings
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
-    return f"{route.tags[0]}-{route.name}"
+    return "1"  # f"{route.tags[0]}-{route.name}"
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -29,6 +31,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Подключение статических файлов
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+# Маршрут для главной страницы
+@app.get("/")
+async def read_index():
+    return FileResponse("static/index.html")
+
+
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
@@ -40,5 +52,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=True,
-        reload_dirs=["app"],
+        workers=1,
     )
