@@ -1,12 +1,12 @@
 from typing import List, Optional
 
-from sqlalchemy import text, delete, select, insert
+from sqlalchemy import text, delete, select, insert, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from app.models import Task
-from app.tasks.schemas import TaskUpdate, TaskCreate
+from app.tasks.schemas import TaskUpdate, TaskCreate, TaskFilter
 
 
 class TaskRepository:
@@ -15,19 +15,41 @@ class TaskRepository:
         self._session: AsyncSession = session
 
     async def create_new_task(self, task: TaskCreate) -> int:
-        stmt = insert(Task).values(task.model_dump(exclude_unset=True))
+        stmt = (
+            insert(Task)
+            .values(**task.model_dump(exclude_unset=True))
+            .returning(Task.id)
+        )
         result = await self._session.execute(stmt)
-        return result.fetchone().id
+        await self._session.commit()
+        return result.scalar()
 
     async def get_task_by_id(self, task_id: int) -> Task:
         stmt = select(Task).where(Task.id == task_id)
         result = await self._session.execute(stmt)
-        return result.fetchone()
+        return result.scalar()
 
     async def list_all(self) -> List[Task]:
         stmt = select(Task)
         result = await self._session.execute(stmt)
-        return result.fetchall()
+        return result.scalars().all()
+
+    async def list_all_with_filtres(
+        self, filters: TaskFilter = TaskFilter()
+    ) -> List[Task]:
+        filters_dict = filters.model_dump(exclude_unset=True, exclude_none=True)
+        conditions = []
+        for key in filters_dict:
+            if key == "create_gt":
+                conditions.append(Task.created_at < filters_dict[key])
+            elif key == "create_lt":
+                conditions.append(Task.created_at > filters_dict[key])
+            else:
+                conditions.append(getattr(Task, key).like(f"%{filters_dict[key]}%"))
+
+        stmt = select(Task).where(and_(*conditions))
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
 
     async def update_by_id(
         self, task_id: int, update_fields: TaskUpdate
@@ -35,7 +57,7 @@ class TaskRepository:
         user = await self._session.get(Task, task_id)
         if not user:
             return None
-        update_dict = TaskUpdate.model_dump(exclude_unset=True, exclude_none=True)
+        update_dict = update_fields.model_dump(exclude_unset=True, exclude_none=True)
         for key, value in update_dict.items():
             if hasattr(user, key):
                 setattr(user, key, value)
@@ -45,4 +67,5 @@ class TaskRepository:
     async def delete_by_id(self, task_id: int) -> bool:
         stmt = delete(Task).where(Task.id == task_id)
         operation_result = await self._session.execute(stmt)
-        return operation_result.rowcount() > 0
+        await self._session.commit()
+        return operation_result.rowcount > 0
