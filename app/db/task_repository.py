@@ -1,12 +1,12 @@
 from typing import List, Optional
 
-from sqlalchemy import text, delete, select, insert
+from sqlalchemy import text, delete, select, insert, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from app.models import Task
-from app.tasks.schemas import TaskUpdate, TaskCreate
+from app.tasks.schemas import TaskUpdate, TaskCreate, TaskFilter
 
 
 class TaskRepository:
@@ -31,6 +31,23 @@ class TaskRepository:
 
     async def list_all(self) -> List[Task]:
         stmt = select(Task)
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
+
+    async def list_all_with_filtres(
+        self, filters: TaskFilter = TaskFilter()
+    ) -> List[Task]:
+        filters_dict = filters.model_dump(exclude_unset=True, exclude_none=True)
+        conditions = []
+        for key in filters_dict:
+            if key == "create_gt":
+                conditions.append(Task.created_at < filters_dict[key])
+            elif key == "create_lt":
+                conditions.append(Task.created_at > filters_dict[key])
+            else:
+                conditions.append(getattr(Task, key).like(f"%{filters_dict[key]}%"))
+
+        stmt = select(Task).where(and_(*conditions))
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
