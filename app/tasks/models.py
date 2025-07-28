@@ -1,10 +1,9 @@
 import enum
-from typing import Optional
 
-from sqlalchemy import Enum, ForeignKey, Text
+from sqlalchemy import Enum, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.utils import Base
+from app.database import Base
 
 
 class Status(str, enum.Enum):
@@ -25,14 +24,3 @@ class Task(Base):
     files: Mapped[list["File"]] = relationship(
         "File", back_populates="task", cascade="all, delete-orphan"
     )
-
-
-class File(Base):
-    filename: Mapped[str] = mapped_column(Text)
-    filepath: Mapped[str] = mapped_column(Text)
-    mimetype: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    size: Mapped[Optional[int]] = mapped_column(nullable=True, default=0)
-
-    task_id: Mapped[int] = mapped_column(ForeignKey("task.id"))
-
-    task: Mapped["Task"] = relationship("Task", back_populates="files")

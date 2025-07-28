@@ -12,7 +12,7 @@ class FileModel {
         this.filename = filename;
         this.mimetype = mimetype;
         this.size = size || 0;
-        this.url = `${API_BASE_URL}/tasks/files/${id}`; // Генерируем URL на клиенте
+        this.url = `${API_BASE_URL}/files/${id}`; // Генерируем URL на клиенте
     }
 }
 
@@ -72,7 +72,7 @@ const api = {
             formData.append('file', file, file.name); // Изменили с 'files' на 'file'
 
             try {
-                const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/files/`, {
+                const response = await fetch(`${API_BASE_URL}/files/${taskId}`, {
                     method: 'POST',
                     body: formData,
                 });

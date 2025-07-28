@@ -1,8 +1,8 @@
 """Initial revision
 
-Revision ID: 9487bc0f5b40
+Revision ID: 5da04095fc2e
 Revises: 
-Create Date: 2025-07-27 00:27:33.509174
+Create Date: 2025-07-27 23:37:50.065995
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '9487bc0f5b40'
+revision: str = '5da04095fc2e'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('project', sa.Text(), nullable=False),
     sa.Column('organisation', sa.Text(), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('status', sa.Enum('IN_PROGRESS', 'DONE', name='status'), nullable=False),
+    sa.Column('status', sa.Enum('NEW', 'IN_PROGRESS', 'DONE', name='status'), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
@@ -35,7 +35,8 @@ def upgrade() -> None:
     op.create_table('file',
     sa.Column('filename', sa.Text(), nullable=False),
     sa.Column('filepath', sa.Text(), nullable=False),
-    sa.Column('mimetype', sa.Text(), nullable=False),
+    sa.Column('mimetype', sa.Text(), nullable=True),
+    sa.Column('size', sa.Integer(), nullable=True),
     sa.Column('task_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),

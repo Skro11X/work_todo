@@ -4,7 +4,7 @@ from sqlalchemy import and_, delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Task
+from app.tasks.models import Task
 from app.tasks.schemas import TaskCreate, TaskFilter, TaskUpdate
 
 
@@ -23,11 +23,7 @@ class TaskRepository:
         return result.scalar()
 
     async def get_task_by_id(self, task_id: int) -> Task:
-        stmt = (
-            select(Task)
-            .options(selectinload(Task.files))
-            .where(Task.id == task_id)
-        )
+        stmt = select(Task).options(selectinload(Task.files)).where(Task.id == task_id)
         result = await self._session.execute(stmt)
         return result.scalar()
 
@@ -49,13 +45,9 @@ class TaskRepository:
             elif key in ["status", "project", "organisation"]:
                 conditions.append(getattr(Task, key) == filters_dict[key])
             else:
-                conditions.append(
-                    getattr(Task, key).like(f"%{filters_dict[key]}%")
-                )
+                conditions.append(getattr(Task, key).like(f"%{filters_dict[key]}%"))
 
-        stmt = (
-            select(Task).options(selectinload(Task.files)).where(and_(*conditions))
-        )
+        stmt = select(Task).options(selectinload(Task.files)).where(and_(*conditions))
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
@@ -65,9 +57,7 @@ class TaskRepository:
         user = await self._session.get(Task, task_id)
         if not user:
             return None
-        update_dict = update_fields.model_dump(
-            exclude_unset=True, exclude_none=True
-        )
+        update_dict = update_fields.model_dump(exclude_unset=True, exclude_none=True)
         for key, value in update_dict.items():
             if hasattr(user, key):
                 setattr(user, key, value)
