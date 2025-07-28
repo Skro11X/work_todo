@@ -11,8 +11,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import router as api_router
 from app.api.middleware import logging_middleware
-from app.core.config import settings
-from app.core.logging_config import setup_logging
+from app.config import settings
+from app.logging_config import setup_logging
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -40,16 +40,12 @@ app = FastAPI(
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
-):
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.error(f"Content-Type: {request.headers.get('content-type')}")
     logger.error(f"Method: {request.method}")
     logger.error(f"URL: {request.url}")
 
-    logger.error(
-        f"Validation error on {request.method} {request.url}: {exc.errors()}"
-    )
+    logger.error(f"Validation error on {request.method} {request.url}: {exc.errors()}")
     return JSONResponse(
         status_code=422,
         content={"detail": "Ошибка валидации данных", "errors": exc.errors()},

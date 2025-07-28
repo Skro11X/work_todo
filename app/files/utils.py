@@ -4,7 +4,7 @@ from pathlib import Path
 import aiofiles
 from fastapi import UploadFile
 
-from app.core.config import settings
+from app.config import settings
 
 UPLOAD_DIR = Path(settings.UPLOAD_DIR)
 

@@ -4,31 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-# -- File Schemas --
-
-
-class FileBase(BaseModel):
-    filename: str = Field(..., description="Имя файла")
-    mimetype: str = Field(..., description="(image/jpeg', 'application/pdf')")
-
-
-class FileCreate(BaseModel):
-    filename: str = Field(..., description="Имя файла")
-    mimetype: Optional[str] = Field(None, description="MIME тип файла")
-    filepath: str = Field(..., description="Путь к файлу на сервере")
-    size: Optional[int] = Field(None, description="Размер файла в байтах")
-
-
-class FilePublic(BaseModel):
-    id: int
-    filename: str
-    mimetype: Optional[str] = None
-    size: Optional[int] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-# -- Task Schemas --
+from app.files.schemas import FilePublic
 
 
 class ETaskStatus(StrEnum):
@@ -38,9 +14,7 @@ class ETaskStatus(StrEnum):
 
 
 class TaskBase(BaseModel):
-    title: str = Field(
-        min_length=1, max_length=200, description="Заголовок задачи"
-    )
+    title: str = Field(min_length=1, max_length=200, description="Заголовок задачи")
     description: str = Field(
         min_length=1, max_length=2_000, description="Описание задачи"
     )
@@ -49,17 +23,13 @@ class TaskBase(BaseModel):
         max_length=100,
         description="Тип задачи: issue, question, feature",
     )
-    organisation: str = Field(
-        min_length=1, max_length=255, description="Организация"
-    )
+    organisation: str = Field(min_length=1, max_length=255, description="Организация")
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class TaskCreate(TaskBase):
-    status: ETaskStatus = Field(
-        default=ETaskStatus.NEW, description="Статус задачи"
-    )
+    status: ETaskStatus = Field(default=ETaskStatus.NEW, description="Статус задачи")
 
 
 class TaskUpdate(BaseModel):

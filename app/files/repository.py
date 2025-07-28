@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import File
+from app.files.models import File
 
 
 class FileRepository:
