@@ -79,7 +79,7 @@ async def upload_file_to_task(
         )
 
 
-@router.get("/files/{file_id}")
+@router.get("/{file_id}")
 async def download_file(
     file_id: int,
     session: AsyncSession = Depends(get_session),

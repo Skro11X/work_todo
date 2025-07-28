@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
+    SQLITE_DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
+    POSTGRE_DATABASE_URL: str = "postgresql+asyncpg://dbuser:dbpassword@localhost:5432/taskmaster"
 
     # File Uploads
     UPLOAD_DIR: Path = Path("uploads")
