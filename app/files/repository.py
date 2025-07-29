@@ -10,14 +10,14 @@ class FileRepository:
     def __init__(self, session: AsyncSession):
         self._session: AsyncSession = session
 
-    async def create_file(self, file_data_dict: dict) -> int:
+    async def create(self, file_data_dict: dict) -> int:
         """Создает новый файл в БД и возвращает его ID"""
         stmt = insert(File).values(**file_data_dict).returning(File.id)
         result = await self._session.execute(stmt)
         await self._session.commit()
         return result.scalar()
 
-    async def get_file_by_id(self, file_id: int) -> Optional[File]:
+    async def get_by_id(self, file_id: int) -> Optional[File]:
         """Получает файл по ID"""
         stmt = select(File).where(File.id == file_id)
         result = await self._session.execute(stmt)
@@ -29,7 +29,7 @@ class FileRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def delete_file_by_id(self, file_id: int) -> bool:
+    async def delete_by_id(self, file_id: int) -> bool:
         """Удаляет файл по ID"""
         stmt = delete(File).where(File.id == file_id)
         operation_result = await self._session.execute(stmt)

@@ -12,7 +12,7 @@ class TaskRepository:
     def __init__(self, session: AsyncSession):
         self._session: AsyncSession = session
 
-    async def create_new_task(self, task: TaskCreate) -> int:
+    async def create(self, task: TaskCreate) -> int:
         stmt = (
             insert(Task)
             .values(**task.model_dump(exclude_unset=True))
@@ -22,7 +22,7 @@ class TaskRepository:
         await self._session.commit()
         return result.scalar()
 
-    async def get_task_by_id(self, task_id: int) -> Task:
+    async def get_by_id(self, task_id: int) -> Task:
         stmt = select(Task).options(selectinload(Task.files)).where(Task.id == task_id)
         result = await self._session.execute(stmt)
         return result.scalar()
