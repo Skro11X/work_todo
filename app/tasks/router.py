@@ -24,8 +24,8 @@ async def create_new_task(
     """Создает новую задачу"""
     task_repo = TaskRepository(session)
     try:
-        task_id = await task_repo.create_new_task(task_in)
-        task = await task_repo.get_task_by_id(task_id)
+        task_id = await task_repo.create(task_in)
+        task = await task_repo.get_by_id(task_id)
         if not task:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -50,7 +50,7 @@ async def create_new_task(
 async def get_task_by_id(task_id: int, session: AsyncSession = Depends(get_session)):
     """Получает задачу по ID"""
     task_repo = TaskRepository(session)
-    task = await task_repo.get_task_by_id(task_id)
+    task = await task_repo.get_by_id(task_id)
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена"
@@ -67,7 +67,7 @@ async def update_existing_task(
     """Обновляет существующую задачу"""
     task_repo = TaskRepository(session)
 
-    existing_task = await task_repo.get_task_by_id(task_id)
+    existing_task = await task_repo.get_by_id(task_id)
     if not existing_task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена"
@@ -80,7 +80,7 @@ async def update_existing_task(
             detail="Не удалось обновить задачу",
         )
 
-    updated_task = await task_repo.get_task_by_id(task_id)
+    updated_task = await task_repo.get_by_id(task_id)
     return updated_task
 
 
@@ -93,7 +93,7 @@ async def update_task_status(
     """Обновляет только статус задачи"""
     task_repo = TaskRepository(session)
 
-    existing_task = await task_repo.get_task_by_id(task_id)
+    existing_task = await task_repo.get_by_id(task_id)
     if not existing_task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена"
@@ -108,7 +108,7 @@ async def update_task_status(
             detail="Не удалось обновить статус задачи",
         )
 
-    updated_task = await task_repo.get_task_by_id(task_id)
+    updated_task = await task_repo.get_by_id(task_id)
     return updated_task
 
 

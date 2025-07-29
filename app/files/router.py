@@ -32,7 +32,7 @@ async def upload_file_to_task(
     task_repo = TaskRepository(session)
     file_repo = FileRepository(session)
 
-    task = await task_repo.get_task_by_id(task_id)
+    task = await task_repo.get_by_id(task_id)
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена"
@@ -64,8 +64,8 @@ async def upload_file_to_task(
     try:
         file_data_dict = file_data_for_db.model_dump()
         file_data_dict["task_id"] = task_id
-        file_id = await file_repo.create_file(file_data_dict)
-        created_file = await file_repo.get_file_by_id(file_id)
+        file_id = await file_repo.create(file_data_dict)
+        created_file = await file_repo.get_by_id(file_id)
         if not created_file:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -87,7 +87,7 @@ async def download_file(
     """Скачивает файл по его ID"""
     file_repo = FileRepository(session)
 
-    file_record = await file_repo.get_file_by_id(file_id)
+    file_record = await file_repo.get_by_id(file_id)
     if not file_record:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Файл не найден"

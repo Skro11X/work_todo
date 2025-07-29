@@ -1,15 +1,15 @@
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import APIRouter, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.main import router as api_router
+from app.api.main_router import router as api_router
 from app.api.middleware import logging_middleware
 from app.config import settings
 from app.logging_config import setup_logging
@@ -66,17 +66,7 @@ app.middleware("http")(logging_middleware)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# Маршрут для главной страницы
-web_router = APIRouter()
-
-
-@web_router.get("/")
-async def read_index():
-    return FileResponse("static/index.html")
-
-
 app.include_router(api_router, prefix=settings.API_V1_STR)
-app.include_router(web_router)
 
 
 if __name__ == "__main__":
