@@ -1,4 +1,5 @@
 # app/core/config.py
+from dataclasses import Field
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -42,7 +43,7 @@ class Settings(BaseSettings):
     )
 
     # JWT
-    JWT: JWTAuth = JWTAuth
+    JWT: JWTAuth = JWTAuth()
 
     # File Uploads
     UPLOAD_DIR: Path = Path("uploads")
