@@ -126,7 +126,25 @@
                 </div>
             </div>
         </div>
-
+        <div id="registerModal" class="modal hidden">
+            <div class="modal-content auth-modal">
+                <span class="modal-close" id="registerModalClose">×</span>
+                <h2>Регистрация</h2>
+                <form id="registerForm">
+                    <div class="form-row">
+                        <label for="username">Имя пользователя:</label>
+                        <input type="text" id="username" name="username" required minlength="4">
+                    </div>
+                    <div class="form-row">
+                        <label for="password">Пароль:</label>
+                        <input type="password" id="password" name="password" required minlength="6">
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="action-button">Зарегистрироваться</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- Toast Container -->
         <div id="toastContainer" class="toast-container"></div>
     </div>

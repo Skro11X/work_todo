@@ -25,8 +25,6 @@ let searchTimeout = null;
 
 
 // ... (начало вашего файла handlers.js)
-import { api, TaskStatus } from './api.js';
-import { toast } from './toast.js';
 import { registerUser } from './auth.js'; // <-- Импортируем новую функцию
 
 // ... (все существующие переменные)
@@ -57,68 +55,6 @@ function openRegisterModal() {
 function closeRegisterModal() {
     registerModal.classList.remove('show');
     setTimeout(() => registerModal.classList.add('hidden'), 300); // Для анимации
-}
-
-
-/** Инициализация обработчиков событий */
-export function setupEventListeners() {
-    // ... (все ваши существующие обработчики)
-
-    // --- НОВЫЕ ОБРАБОТЧИКИ для регистрации ---
-
-    if (registerButton) {
-        registerButton.addEventListener('click', openRegisterModal);
-    }
-
-    if (registerModalClose) {
-        registerModalClose.addEventListener('click', closeRegisterModal);
-    }
-
-    // Закрытие модального окна по клику на фон
-    if (registerModal) {
-        registerModal.addEventListener('click', (e) => {
-            if (e.target === registerModal) {
-                closeRegisterModal();
-            }
-        });
-    }
-
-    // Обработка отправки формы регистрации
-    if (registerForm) {
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                await registerUser(username, password);
-                registerForm.reset();
-                closeRegisterModal();
-                // Возможно, здесь нужно будет обновить состояние приложения,
-                // например, показать имя пользователя в шапке
-            } catch (error) {
-                // Ошибки уже обрабатываются и выводятся через toast в функции registerUser
-            }
-        });
-    }
-
-
-    // --- Обработчики для модального окна изображений ---
-    // ... (ваши существующие обработчики для imageModal)
-
-    // Закрытие модальных окон по нажатию Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const imageModal = document.getElementById('imageModal');
-            if (imageModal && !imageModal.classList.contains('hidden')) {
-                closeImageModal();
-            }
-            // Добавляем закрытие для окна регистрации
-            if (registerModal && !registerModal.classList.contains('hidden')) {
-                closeRegisterModal();
-            }
-        }
-    });
 }
 
 /**
@@ -616,6 +552,59 @@ export function setupEventListeners() {
             const imageModal = document.getElementById('imageModal');
             if (imageModal && !imageModal.classList.contains('hidden')) {
                 closeImageModal();
+            }
+        }
+    });
+       if (registerButton) {
+        registerButton.addEventListener('click', openRegisterModal);
+    }
+
+    if (registerModalClose) {
+        registerModalClose.addEventListener('click', closeRegisterModal);
+    }
+
+    // Закрытие модального окна по клику на фон
+    if (registerModal) {
+        registerModal.addEventListener('click', (e) => {
+            if (e.target === registerModal) {
+                closeRegisterModal();
+            }
+        });
+    }
+
+    // Обработка отправки формы регистрации
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                await registerUser(username, password);
+                registerForm.reset();
+                closeRegisterModal();
+                // Возможно, здесь нужно будет обновить состояние приложения,
+                // например, показать имя пользователя в шапке
+            } catch (error) {
+                // Ошибки уже обрабатываются и выводятся через toast в функции registerUser
+            }
+        });
+    }
+
+
+    // --- Обработчики для модального окна изображений ---
+    // ... (ваши существующие обработчики для imageModal)
+
+    // Закрытие модальных окон по нажатию Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const imageModal = document.getElementById('imageModal');
+            if (imageModal && !imageModal.classList.contains('hidden')) {
+                closeImageModal();
+            }
+            // Добавляем закрытие для окна регистрации
+            if (registerModal && !registerModal.classList.contains('hidden')) {
+                closeRegisterModal();
             }
         }
     });
