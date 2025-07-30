@@ -54,13 +54,13 @@ class TaskRepository:
     async def update_by_id(
         self, task_id: int, update_fields: TaskUpdate
     ) -> Optional[bool]:
-        user = await self._session.get(Task, task_id)
-        if not user:
+        task = await self._session.get(Task, task_id)
+        if not task:
             return None
         update_dict = update_fields.model_dump(exclude_unset=True, exclude_none=True)
         for key, value in update_dict.items():
-            if hasattr(user, key):
-                setattr(user, key, value)
+            if hasattr(task, key):
+                setattr(task, key, value)
         await self._session.commit()
         return True
 
