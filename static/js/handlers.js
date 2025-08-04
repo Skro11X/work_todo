@@ -23,40 +23,6 @@ let closedTasksCache = [];
 let selectedFiles = []; // Хранит выбранные для загрузки файлы
 let searchTimeout = null;
 
-
-// ... (начало вашего файла handlers.js)
-import { registerUser } from './auth.js'; // <-- Импортируем новую функцию
-
-// ... (все существующие переменные)
-
-// НОВЫЕ переменные для модального окна регистрации
-const registerButton = document.getElementById('registerButton');
-const registerModal = document.getElementById('registerModal');
-const registerModalClose = document.getElementById('registerModalClose');
-const registerForm = document.getElementById('registerForm');
-
-
-// ... (все существующие функции: switchTab, loadTasks, и т.д.)
-
-
-// НОВЫЕ функции для управления модальным окном регистрации
-
-/**
- * Открывает модальное окно регистрации.
- */
-function openRegisterModal() {
-    registerModal.classList.remove('hidden');
-    setTimeout(() => registerModal.classList.add('show'), 10); // Для анимации
-}
-
-/**
- * Закрывает модальное окно регистрации.
- */
-function closeRegisterModal() {
-    registerModal.classList.remove('show');
-    setTimeout(() => registerModal.classList.add('hidden'), 300); // Для анимации
-}
-
 /**
  * Переключает активную вкладку.
  * @param {'new' | 'open' | 'closed'} activeTab - Идентификатор вкладки.
@@ -552,59 +518,6 @@ export function setupEventListeners() {
             const imageModal = document.getElementById('imageModal');
             if (imageModal && !imageModal.classList.contains('hidden')) {
                 closeImageModal();
-            }
-        }
-    });
-       if (registerButton) {
-        registerButton.addEventListener('click', openRegisterModal);
-    }
-
-    if (registerModalClose) {
-        registerModalClose.addEventListener('click', closeRegisterModal);
-    }
-
-    // Закрытие модального окна по клику на фон
-    if (registerModal) {
-        registerModal.addEventListener('click', (e) => {
-            if (e.target === registerModal) {
-                closeRegisterModal();
-            }
-        });
-    }
-
-    // Обработка отправки формы регистрации
-    if (registerForm) {
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                await registerUser(username, password);
-                registerForm.reset();
-                closeRegisterModal();
-                // Возможно, здесь нужно будет обновить состояние приложения,
-                // например, показать имя пользователя в шапке
-            } catch (error) {
-                // Ошибки уже обрабатываются и выводятся через toast в функции registerUser
-            }
-        });
-    }
-
-
-    // --- Обработчики для модального окна изображений ---
-    // ... (ваши существующие обработчики для imageModal)
-
-    // Закрытие модальных окон по нажатию Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const imageModal = document.getElementById('imageModal');
-            if (imageModal && !imageModal.classList.contains('hidden')) {
-                closeImageModal();
-            }
-            // Добавляем закрытие для окна регистрации
-            if (registerModal && !registerModal.classList.contains('hidden')) {
-                closeRegisterModal();
             }
         }
     });
