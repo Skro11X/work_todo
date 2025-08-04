@@ -19,7 +19,9 @@ class Settings(BaseSettings):
 
     # Database
     SQLITE_DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
-    POSTGRE_DATABASE_URL: str = "postgresql+asyncpg://dbuser:dbpassword@localhost:5432/taskmaster"
+    POSTGRE_DATABASE_URL: str = (
+        "postgresql+asyncpg://dbuser:dbpassword@localhost:5433/taskmaster"
+    )
 
     # File Uploads
     UPLOAD_DIR: Path = Path("uploads")
@@ -27,6 +29,9 @@ class Settings(BaseSettings):
     ORGANISATION_MAP: Dict[str, str] = {
         "p17": "ГП 17",
     }
+
+    # Tokens
+    YOUTRACK_API_TOKEN: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

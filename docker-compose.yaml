@@ -9,9 +9,31 @@ services:
       POSTGRES_USER: dbuser
       POSTGRES_PASSWORD: dbpassword
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  youtrack:
+    image: jetbrains/youtrack:2025.2.89748
+    container_name: youtrack
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      YOUTRACK_DATABASE_TYPE: postgres
+      YOUTRACK_DATABASE_HOST: db
+      YOUTRACK_DATABASE_PORT: 5433
+      YOUTRACK_DATABASE_NAME: taskmaster
+      YOUTRACK_DATABASE_USER: dbuser
+      YOUTRACK_DATABASE_PASSWORD: dbpassword
+    volumes:
+      - youtrack_data:/opt/youtrack/data
+      - youtrack_conf:/opt/youtrack/conf
+      - youtrack_logs:/opt/youtrack/logs
+
 volumes:
   pgdata:
+  youtrack_data:
+  youtrack_conf:
+  youtrack_logs:
