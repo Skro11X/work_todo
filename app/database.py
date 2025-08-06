@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, declared_attr
 from app.config import settings
 
-async_engine = create_async_engine(url=settings.POSTGRE_DATABASE_URL)
+async_engine = create_async_engine(url=settings.SQLITE_DATABASE_URL)
 
 async_session_maker = async_sessionmaker(async_engine, expire_on_commit=False)
 

@@ -5,128 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskMaster</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+          crossorigin="anonymous">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="tabs">
-                <button class="tab-button active" id="newTab">Новая</button>
-                <button class="tab-button" id="openTab">Открытые</button>
-                <button class="tab-button" id="closedTab">Закрытые</button>
-            </div>
-            <div class="logo">VistaTask</div>
-        </header>
+<div class="container">
+    <header class="header">
+        <div class="tabs">
+            <button class="tab-button active" id="newTab">Новая</button>
+            <button class="tab-button" id="openTab">Открытые</button>
+            <button class="tab-button" id="closedTab">Закрытые</button>
+        </div>
+        <div class="logo">VistaTask</div>
+        <div class="auth-buttons">
+            <button class="auth-button" id="registerBtn">Регистрация</button>
+            <button class="auth-button" id="loginBtn">Вход</button>
+        </div>
+    </header>
 
-        <main class="content">
-            <!-- Вкладка "Новая" -->
-            <div id="newContent" class="tab-content">
-                <form class="new-task-form">
-                    <div class="form-row">
-                        <label for="lpu">ЛПУ:</label>
-                        <!-- Значение задается из JS, data-org-code хранит код для отправки -->
-                        <input type="text" id="lpu" value="ГП 17" data-org-code="p17" readonly>
-                    </div>
-                    <div class="form-row">
-                        <label for="taskType">Проект:</label>
-                        <select id="taskType">
-                            <option value="web-reports">Веп Ачоты</option>
-                            <option value="vista-desktop">боже храни python2.7 (деск)</option>
-                            <option value="iemk">(вопросы ТОЛЬКО по IEMKv2py3)</option>
-                            <option value="doctorroom">боже храни php (doctorroom)</option>
-                            <option value="templates">шаблоны...</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <label for="subject">Тема:</label>
-                        <input type="text" id="subject" required minlength="3">
-                    </div>
-                    <div class="form-row text-area-row">
-                        <label for="text">Текст:</label>
-                        <textarea id="text" required></textarea>
-                    </div>
-                    <div class="form-row file-upload-row">
-                        <label for="files">Файлы:</label>
-                        <div class="file-area">
-                            <div class="file-drop-area" id="fileDropArea">
-                                Кликните для выбора файлов или просто перетащите их сюда
-                                <input type="file" id="files" multiple style="display: none;">
-                                <span class="download-icon">↓</span>
-                            </div>
-                            <!-- Контейнер для списка выбранных файлов -->
-                            <div id="fileListContainer"></div>
+    <main class="content">
+        <!-- Вкладка "Новая" -->
+        <div id="newContent" class="tab-content">
+            <form class="new-task-form">
+                <div class="form-row">
+                    <label for="lpu">ЛПУ:</label>
+                    <!-- Значение задается из JS, data-org-code хранит код для отправки -->
+                    <input type="text" id="lpu" value="ГП 17" data-org-code="p17" readonly>
+                </div>
+                <div class="form-row">
+                    <label for="taskType">Проект:</label>
+                    <select id="taskType">
+                        <option value="web-reports">Веп Ачоты</option>
+                        <option value="vista-desktop">боже храни python2.7 (деск)</option>
+                        <option value="iemk">(вопросы ТОЛЬКО по IEMKv2py3)</option>
+                        <option value="doctorroom">боже храни php (doctorroom)</option>
+                        <option value="templates">шаблоны...</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="subject">Тема:</label>
+                    <input type="text" id="subject" required minlength="3">
+                </div>
+                <div class="form-row text-area-row">
+                    <label for="text">Текст:</label>
+                    <textarea id="text" required></textarea>
+                </div>
+                <div class="form-row file-upload-row">
+                    <label for="files">Файлы:</label>
+                    <div class="file-area">
+                        <div class="file-drop-area" id="fileDropArea">
+                            Кликните для выбора файлов или просто перетащите их сюда
+                            <input type="file" id="files" multiple style="display: none;">
+                            <span class="download-icon">↓</span>
                         </div>
-                    </div>
-                    <div class="form-footer">
-                        <button type="submit" class="action-button">Отправить</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Вкладка "Открытые" -->
-            <div id="openContent" class="tab-content hidden">
-                <div class="left-panel">
-                    <div class="search-container">
-                        <input type="text" id="searchInput" placeholder="Поиск задач..." class="search-input">
-                    </div>
-                    <div class="tasks-list">
-                        <!-- Сюда будут загружаться открытые задачи -->
+                        <!-- Контейнер для списка выбранных файлов -->
+                        <div id="fileListContainer"></div>
                     </div>
                 </div>
-                <div class="right-panel">
-                    <div class="right-panel-title">Выберите задачу</div>
-                    <div class="details"></div>
-                    <div class="right-panel-description"></div>
-                    <div class="files-section">
-                        <h3>Прикрепленные файлы</h3>
-                        <div class="files-grid">
-                            <!-- Сюда будут загружаться файлы -->
-                        </div>
-                    </div>
+                <div class="form-footer">
+                    <button type="submit" class="action-button">Отправить</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Вкладка "Открытые" -->
+        <div id="openContent" class="tab-content hidden">
+            <div class="left-panel">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Поиск задач..." class="search-input">
+                </div>
+                <div class="tasks-list">
+                    <!-- Сюда будут загружаться открытые задачи -->
                 </div>
             </div>
-
-            <!-- Вкладка "Закрытые" -->
-            <div id="closedContent" class="tab-content hidden">
-                <div class="left-panel">
-                    <div class="search-container">
-                        <input type="text" id="searchInputClosed" placeholder="Поиск задач..." class="search-input">
-                    </div>
-                    <div class="tasks-list">
-                        <!-- Сюда будут загружаться закрытые задачи -->
-                    </div>
-                </div>
-                <div class="right-panel">
-                    <div class="right-panel-title">Выберите задачу</div>
-                    <div class="details"></div>
-                    <div class="right-panel-description"></div>
-                    <div class="files-section">
-                        <h3>Прикрепленные файлы</h3>
-                        <div class="files-grid">
-                            <!-- Сюда будут загружаться файлы -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Modal для полноэкранного просмотра изображений -->
-        <div id="imageModal" class="modal hidden">
-            <div class="modal-content">
-                <span class="modal-close">&times;</span>
-                <img id="modalImage" src="" alt="">
-                <div class="modal-info">
-                    <div class="modal-filename"></div>
-                    <div class="modal-actions">
-                        <a id="modalDownload" href="" download class="modal-button">Скачать</a>
+            <div class="right-panel">
+                <div class="right-panel-title">Выберите задачу</div>
+                <div class="details"></div>
+                <div class="right-panel-description"></div>
+                <div class="files-section">
+                    <h3>Прикрепленные файлы</h3>
+                    <div class="files-grid">
+                        <!-- Сюда будут загружаться файлы -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Toast Container -->
-        <div id="toastContainer" class="toast-container"></div>
-    </div>
+        <!-- Вкладка "Закрытые" -->
+        <div id="closedContent" class="tab-content hidden">
+            <div class="left-panel">
+                <div class="search-container">
+                    <input type="text" id="searchInputClosed" placeholder="Поиск задач..." class="search-input">
+                </div>
+                <div class="tasks-list">
+                    <!-- Сюда будут загружаться закрытые задачи -->
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="right-panel-title">Выберите задачу</div>
+                <div class="details"></div>
+                <div class="right-panel-description"></div>
+                <div class="files-section">
+                    <h3>Прикрепленные файлы</h3>
+                    <div class="files-grid">
+                        <!-- Сюда будут загружаться файлы -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <script type="module" src="/static/js/main.js"></script>
+    <!-- Modal для полноэкранного просмотра изображений -->
+    <div id="imageModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <img id="modalImage" src="" alt="">
+            <div class="modal-info">
+                <div class="modal-filename"></div>
+                <div class="modal-actions">
+                    <a id="modalDownload" href="" download class="modal-button">Скачать</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal для выведения формы регистрации -->
+    <div id="authModal" class="auth_wrapper modal hidden">
+        <div class="container right-panel-active" id="container">
+            <div class="form-container sign-up-container">
+                <form action="">
+                    <h1>Регистрация</h1>
+<!--                    <div class="social-container">-->
+<!--                        <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>-->
+<!--                        <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>-->
+<!--                        <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>-->
+<!--                    </div>-->
+<!--                    <span>или используйте свой E-mail для регистрации</span>-->
+                    <input name="username" type="text" placeholder="Username"/>
+                    <input name="password" type="password" placeholder="Password"/>
+                    <input name="password_confirm" type="password" placeholder="Passoword confirm"/>
+                    <button>Зарегистрироваться</button>
+                </form>
+            </div>
+            <div class="form-container sign-in-container">
+                <form action="#">
+                    <h1>Авторизация</h1>
+<!--                    <div class="social-container">-->
+<!--                        <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>-->
+<!--                        <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>-->
+<!--                        <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>-->
+<!--                    </div>-->
+<!--                    <span>или используйте свой аккаунт</span>-->
+                    <input type="email" placeholder="Email"/>
+                    <input type="password" placeholder="Password"/>
+<!--                    <a href="#">Забыли пароль?</a>-->
+                    <button>Вход</button>
+                </form>
+            </div>
+            <div class="overlay-container">
+                <div class="overlay">
+                    <div class="overlay-panel overlay-left">
+                        <h1>Добро пожаловать!</h1>
+                        <p>Чтобы оставаться на связи с нами, пожалуйста, войдите в систему с вашей личной
+                            информацией</p>
+                        <button class="ghost" id="signIn">Авторизация</button>
+                    </div>
+                    <div class="overlay-panel overlay-right">
+                        <h1>Привет, Друг!</h1>
+                        <p>Введите свои личные данные и начните путешествие вместе с нами</p>
+                        <button class="ghost" id="signUp">Регистрация</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+</div>
+
+<script type="module" src="/static/js/main.js"></script>
 </body>
 </html>

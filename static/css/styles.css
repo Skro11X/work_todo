@@ -661,6 +661,32 @@ body {
     background-color: #b02525;
 }
 
+/* Стили кнопок регистрации */
+.auth-button {
+    background-color: var(--highlight-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--border-radius-base);
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.auth-button:hover {
+    background-color: #b02525;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(209, 45, 45, 0.3);
+}
+
+.auth-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(209, 45, 45, 0.2);
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
     .content {

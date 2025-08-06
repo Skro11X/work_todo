@@ -1,5 +1,6 @@
 import { api, TaskStatus } from './api.js';
 import { toast } from './toast.js';
+import { get_form } from './auth.js';
 
 const newTabButton = document.getElementById('newTab');
 const openTabButton = document.getElementById('openTab');
@@ -17,6 +18,9 @@ const newTaskForm = document.querySelector('.new-task-form');
 const searchInput = document.getElementById('searchInput');
 const searchInputClosed = document.getElementById('searchInputClosed');
 
+const registerBtn = document.getElementById("registerBtn")
+const signUpButton = document.getElementById('signUp');
+const signInButton = document.getElementById('signIn');
 // --- Внутреннее состояние ---
 let openTasksCache = [];
 let closedTasksCache = [];
@@ -521,4 +525,23 @@ export function setupEventListeners() {
             }
         }
     });
+//     Открытие модального окна формы и регистрации
+    registerBtn.addEventListener("click", () => {
+            const wrapper = document.getElementById('authModal');
+
+            wrapper.classList.remove('hidden');
+            wrapper.classList.add('show');
+    })
+    signUpButton.addEventListener('click', () => {
+        const wrapper = document.getElementById('authModal');
+        const container = wrapper.querySelector('#container');
+        container.classList.add('right-panel-active');
+    })
+
+
+    signInButton.addEventListener('click', () => {
+        const wrapper = document.getElementById('authModal');
+        const container = wrapper.querySelector('#container');
+        container.classList.remove('right-panel-active');
+    })
 }
