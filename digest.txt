@@ -1,0 +1,2060 @@
+Directory structure:
+└── static/
+    ├── index.html
+    ├── css/
+    │   ├── auth.css
+    │   └── styles.css
+    └── js/
+        ├── api.js
+        ├── auth.js
+        ├── handlers.js
+        ├── main.js
+        └── toast.js
+
+================================================
+FILE: index.html
+================================================
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+          crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <div class="tabs">
+            <button class="tab-button active" id="newTab">Новая</button>
+            <button class="tab-button" id="openTab">Открытые</button>
+            <button class="tab-button" id="closedTab">Закрытые</button>
+        </div>
+        <div class="logo">VistaTask</div>
+        <div class="auth-buttons" id="loginButtons">
+            <button class="auth-button" id="registerBtn">Регистрация</button>
+        </div>
+        <div class="user-info-container hidden" id="outButtons">
+            <span id="usernameDisplay" class="username-display"></span>
+            <button class="auth-button" id="logoutBtn">Выход</button>
+    </div>
+    </header>
+
+    <main class="content">
+        <!-- Вкладка "Новая" -->
+        <div id="newContent" class="tab-content">
+            <form class="new-task-form">
+                <div class="form-row">
+                    <label for="lpu">ЛПУ:</label>
+                    <!-- Значение задается из JS, data-org-code хранит код для отправки -->
+                    <input type="text" id="lpu" value="ГП 17" data-org-code="p17" readonly>
+                </div>
+                <div class="form-row">
+                    <label for="taskType">Проект:</label>
+                    <select id="taskType">
+                        <option value="web-reports">Веп Ачоты</option>
+                        <option value="vista-desktop">боже храни python2.7 (деск)</option>
+                        <option value="iemk">(вопросы ТОЛЬКО по IEMKv2py3)</option>
+                        <option value="doctorroom">боже храни php (doctorroom)</option>
+                        <option value="templates">шаблоны...</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="subject">Тема:</label>
+                    <input type="text" id="subject" required minlength="3">
+                </div>
+                <div class="form-row text-area-row">
+                    <label for="text">Текст:</label>
+                    <textarea id="text" required></textarea>
+                </div>
+                <div class="form-row file-upload-row">
+                    <label for="files">Файлы:</label>
+                    <div class="file-area">
+                        <div class="file-drop-area" id="fileDropArea">
+                            Кликните для выбора файлов или просто перетащите их сюда
+                            <input type="file" id="files" multiple style="display: none;">
+                            <span class="download-icon">↓</span>
+                        </div>
+                        <!-- Контейнер для списка выбранных файлов -->
+                        <div id="fileListContainer"></div>
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <button type="submit" class="action-button">Отправить</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Вкладка "Открытые" -->
+        <div id="openContent" class="tab-content hidden">
+            <div class="left-panel">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Поиск задач..." class="search-input">
+                </div>
+                <div class="tasks-list">
+                    <!-- Сюда будут загружаться открытые задачи -->
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="right-panel-title">Выберите задачу</div>
+                <div class="details"></div>
+                <div class="right-panel-description"></div>
+                <div class="files-section">
+                    <h3>Прикрепленные файлы</h3>
+                    <div class="files-grid">
+                        <!-- Сюда будут загружаться файлы -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка "Закрытые" -->
+        <div id="closedContent" class="tab-content hidden">
+            <div class="left-panel">
+                <div class="search-container">
+                    <input type="text" id="searchInputClosed" placeholder="Поиск задач..." class="search-input">
+                </div>
+                <div class="tasks-list">
+                    <!-- Сюда будут загружаться закрытые задачи -->
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="right-panel-title">Выберите задачу</div>
+                <div class="details"></div>
+                <div class="right-panel-description"></div>
+                <div class="files-section">
+                    <h3>Прикрепленные файлы</h3>
+                    <div class="files-grid">
+                        <!-- Сюда будут загружаться файлы -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal для полноэкранного просмотра изображений -->
+    <div id="imageModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <img id="modalImage" src="" alt="">
+            <div class="modal-info">
+                <div class="modal-filename"></div>
+                <div class="modal-actions">
+                    <a id="modalDownload" href="" download class="modal-button">Скачать</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal для выведения формы регистрации -->
+    <div id="authModal" class="auth_wrapper modal hidden">
+        <span class="modal-close">&times;</span>
+        <div class="container right-panel-active" id="authContainer">
+            <!-- Форма регистрации -->
+            <div class="form-container sign-up-container">
+                <form id="registerForm">
+                    <h1>Регистрация</h1>
+                    <input name="username" type="text" placeholder="Имя пользователя" required/>
+                    <input name="password" type="password" placeholder="Пароль" required/>
+                    <input name="password_confirm" type="password" placeholder="Подтвердите пароль" required/>
+                    <button type="submit">Зарегистрироваться</button>
+                </form>
+            </div>
+
+            <!-- Форма авторизации -->
+            <div class="form-container sign-in-container">
+
+                <form id="loginForm">
+                    <h1>Авторизация</h1>
+                    <input name="username" type="text" placeholder="Имя пользователя" required/>
+                    <input name="password" type="password" placeholder="Пароль" required/>
+                    <button type="submit">Вход</button>
+                </form>
+            </div>
+
+            <div class="overlay-container">
+                <div class="overlay">
+                    <div class="overlay-panel overlay-left">
+                        <h1>Добро пожаловать!</h1>
+                        <p>Чтобы оставаться на связи с нами, пожалуйста, войдите в систему.</p>
+
+                        <button class="ghost" id="switchToLoginBtn">Авторизация</button>
+                    </div>
+                    <div class="overlay-panel overlay-right">
+                        <h1>Привет, Друг!</h1>
+                        <p>Введите свои личные данные и начните путешествие вместе с нами.</p>
+                        <button class="ghost" id="switchToRegisterBtn">Регистрация</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+</div>
+
+<script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
+
+
+================================================
+FILE: css/auth.css
+================================================
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+.auth_wrapper {
+    color: #000;
+	box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: -0px 0 0px;
+    margin-top: 0px;
+}
+
+.auth_wrapper h1 {
+    font-weight: bold;
+    margin: 0;
+}
+
+.auth_wrapper p {
+    font-size: 14px;
+    font-weight: 100;
+    line-height: 20px;
+    letter-spacing: .5px;
+    margin: 20px 0 30px;
+}
+
+.auth_wrapper span {
+    font-size: 12px;
+}
+
+.auth_wrapper a {
+    color: #333;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 15px 0;
+}
+
+.auth_wrapper .container {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, .25), 0 10px 10px rgba(0, 0, 0, .22);
+    position: relative;
+    overflow: hidden;
+    width: 768px;
+    max-width: 100%;
+    min-height: 480px;
+}
+
+.auth_wrapper .form-container form {
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.auth_wrapper .social-container {
+    margin: 20px 0;
+}
+
+.auth_wrapper .social-container a {
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 5px;
+    height: 40px;
+    width: 40px;
+}
+
+.auth_wrapper .form-container input {
+    background: #eee;
+    border: none;
+    padding: 12px 15px;
+    margin: 8px 0;
+    width: 100%;
+}
+
+.auth_wrapper .container button {
+    border-radius: 20px;
+    border: 1px solid #ff4b2b;
+    background: #ff445c;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+}
+
+.auth_wrapper .container button:active {
+    transform: scale(.95);
+}
+
+.auth_wrapper .container button:focus {
+    outline: none;
+}
+
+.auth_wrapper .container button.ghost {
+    background: transparent;
+    border-color: #fff;
+}
+
+.auth_wrapper .form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all .6s ease-in-out;
+}
+
+.auth_wrapper .sign-in-container {
+    left: 0;
+    width: 50%;
+    z-index: 2;
+}
+
+.auth_wrapper .sign-up-container {
+    left: 0;
+    width: 50%;
+    z-index: 1;
+    opacity: 0;
+}
+
+.auth_wrapper .overlay-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform .6s ease-in-out;
+    z-index: 100;
+}
+
+.auth_wrapper .overlay {
+    background: linear-gradient(to right, #ff4b2b, #ff416c) no-repeat 0 0 / cover;
+    color: #fff;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateY(0);
+    transition: transform .6s ease-in-out;
+}
+
+.auth_wrapper .overlay-panel {
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 40px;
+    height: 100%;
+    width: 40%;
+    text-align: center;
+    transform: translateY(0);
+    transition: transform .6s ease-in-out;
+}
+
+.auth_wrapper .overlay-right {
+    right: 0;
+    transform: translateY(0);
+}
+
+.auth_wrapper .overlay-left {
+    transform: translateY(-20%);
+}
+
+.auth_wrapper .container.right-panel-active .sign-in-container {
+    transform: translateY(100%);
+}
+
+.auth_wrapper .container.right-panel-active .overlay-container {
+    transform: translateX(-100%);
+}
+
+.auth_wrapper .container.right-panel-active .sign-up-container {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+}
+
+.auth_wrapper .container.right-panel-active .overlay {
+    transform: translateX(50%);
+}
+
+.auth_wrapper .container.right-panel-active .overlay-left {
+    transform: translateY(0);
+}
+
+.auth_wrapper .container.right-panel-active .overlay-right {
+    transform: translateY(20%);
+}
+
+.auth_wrapper .container .footer {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.auth_wrapper .container .icons {
+    display: flex;
+    width: 30px;
+    height: 30px;
+    letter-spacing: 15px;
+    align-items: center;
+}
+
+
+
+================================================
+FILE: css/styles.css
+================================================
+:root {
+    --bg-color: #1a1a1a;
+    --panel-bg-color: #2b2b2b;
+    --header-bg-color: #1f1f1f;
+    --text-color: #ffffff;
+    --light-text-color: #cccccc;
+    --highlight-color: #d12d2d;
+    --border-color: #444;
+    --button-bg-color: #444;
+    --button-text-color: #fff;
+    --input-bg-color: #3a3a3a;
+    --input-border-color: #555;
+    --padding-base: 15px;
+    --border-radius-base: 4px;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+.container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-base);
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--padding-base);
+    background-color: var(--header-bg-color);
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    z-index: 10;
+}
+
+.tabs {
+    display: flex;
+}
+
+.tab-button {
+    background-color: transparent;
+    color: var(--light-text-color);
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-button.active {
+    color: var(--text-color);
+    border-bottom: 3px solid var(--highlight-color);
+}
+
+.tab-button:hover:not(.active) {
+    color: var(--text-color);
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: bold;
+    color: #ccc;
+    padding-right: 10px;
+    opacity: 0.7;
+    line-height: 1;
+}
+
+.content {
+    display: flex;
+    min-height: 600px;
+    background-color: var(--panel-bg-color);
+    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+}
+
+.tab-content {
+    display: flex;
+    flex: 1;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+/* Левая панель (для вкладок с задачами) */
+.left-panel {
+    width: 300px;
+    background-color: var(--panel-bg-color);
+    border-right: 1px solid var(--border-color);
+    padding: 0;
+    overflow: hidden;
+    max-height: calc(100vh - 150px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-item {
+    padding: var(--padding-base);
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.list-item:hover {
+    background-color: #3a3a3a;
+}
+
+.list-item.active {
+    background-color: var(--highlight-color);
+    color: var(--text-color);
+    border-left: 5px solid var(--highlight-color);
+    box-sizing: border-box;
+    padding-left: calc(var(--padding-base) - 5px);
+}
+
+.list-item .item-id {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.list-item .item-desc {
+    font-size: 0.9em;
+    color: var(--light-text-color);
+}
+
+.list-item.active .item-desc {
+    color: var(--text-color);
+}
+
+
+/* Правая панель (для деталей задачи) */
+.right-panel {
+    flex-grow: 1;
+    padding: var(--padding-base) 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+.right-panel-title {
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.right-panel .details p {
+    margin: 5px 0;
+    color: var(--light-text-color);
+    font-size: 0.95em;
+}
+
+.right-panel-description {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: var(--light-text-color);
+    font-size: 1em;
+    white-space: pre-wrap; /* Сохраняет переносы строк */
+}
+
+.screenshot-placeholder {
+    flex-grow: 1;
+    background-color: #333;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: 70px; /* Место для футера */
+    position: relative;
+}
+
+.screenshot-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    opacity: 0.7;
+}
+
+.right-panel-footer {
+    position: absolute;
+    bottom: var(--padding-base);
+    right: 30px;
+    display: flex;
+    gap: 10px;
+}
+
+/* Форма для вкладки "Новая" */
+.new-task-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--padding-base) 50px;
+    gap: 20px;
+    position: relative;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.form-row label {
+    width: 120px;
+    text-align: right;
+    color: var(--light-text-color);
+    flex-shrink: 0;
+}
+
+.form-row input[type="text"],
+.form-row select,
+.form-row textarea {
+    flex-grow: 1;
+    background-color: var(--input-bg-color);
+    border: 1px solid var(--input-border-color);
+    color: var(--text-color);
+    padding: 10px 15px;
+    border-radius: var(--border-radius-base);
+    font-size: 1em;
+    outline: none;
+}
+
+.form-row input[readonly] {
+    background-color: #2f2f2f;
+    cursor: default;
+}
+
+.form-row input[type="text"]:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    border-color: var(--highlight-color);
+    box-shadow: 0 0 0 2px rgba(209, 45, 45, 0.2);
+}
+
+.form-row select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 35px;
+}
+
+.text-area-row {
+    align-items: flex-start;
+}
+
+.form-row textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.file-upload-row {
+    align-items: flex-start;
+}
+
+.file-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.file-drop-area {
+    min-height: 100px;
+    border: 2px dashed var(--input-border-color);
+    border-radius: var(--border-radius-base);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 15px;
+    cursor: pointer;
+    color: var(--light-text-color);
+    transition: border-color 0.2s ease-in-out;
+    position: relative;
+}
+
+.file-drop-area:hover, .file-drop-area.highlight {
+    border-color: var(--highlight-color);
+}
+
+.download-icon {
+    font-size: 3em;
+    margin-top: 10px;
+    color: var(--light-text-color);
+}
+
+#fileListContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.file-list-item {
+    background-color: var(--input-bg-color);
+    padding: 8px 12px;
+    border-radius: var(--border-radius-base);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.file-remove-btn {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+.file-remove-btn:hover {
+    color: #ff4757;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: flex-end; /* Выравнивание кнопки по правому краю */
+    padding-top: 10px;
+    margin-top: auto; /* Прижимает футер к низу, если есть место */
+}
+
+
+.action-button {
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    border-radius: var(--border-radius-base);
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.action-button:hover {
+    background-color: #555;
+    border-color: #666;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.toast {
+    background-color: var(--panel-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
+    padding: 15px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.success {
+    border-left: 4px solid #4caf50;
+}
+
+.toast.error {
+    border-left: 4px solid var(--highlight-color);
+}
+
+.toast.info {
+    border-left: 4px solid #2196f3;
+}
+
+.toast-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--light-text-color);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 0;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    color: var(--text-color);
+}
+
+/* Search container */
+.search-container {
+    padding: var(--padding-base);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-input {
+    width: 100%;
+    background-color: var(--input-bg-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: var(--border-radius-base);
+    padding: 10px;
+    color: var(--text-color);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.search-input::placeholder {
+    color: var(--light-text-color);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--highlight-color);
+}
+
+.tasks-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Task status badges */
+.task-status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+.task-status-badge.new {
+    background-color: #4caf50;
+    color: white;
+}
+
+.task-status-badge.in-progress {
+    background-color: #ff9800;
+    color: white;
+}
+
+.task-status-badge.done {
+    background-color: #9e9e9e;
+    color: white;
+}
+
+/* Files section */
+.files-section {
+    margin-top: 20px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+
+.files-section h3 {
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+.files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
+    background-color: var(--input-bg-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.file-item:hover {
+    border-color: var(--highlight-color);
+    background-color: rgba(209, 45, 45, 0.1);
+}
+
+.file-thumbnail {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--panel-bg-color);
+}
+
+.file-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.file-icon {
+    font-size: 32px;
+    color: var(--light-text-color);
+}
+
+.file-name {
+    font-size: 11px;
+    color: var(--light-text-color);
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.2;
+    max-height: 24px;
+    overflow: hidden;
+}
+
+.file-size {
+    font-size: 10px;
+    color: var(--light-text-color);
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+/* File type icons */
+.file-icon.image::before { content: "🖼️"; }
+.file-icon.document::before { content: "📄"; }
+.file-icon.pdf::before { content: "📕"; }
+.file-icon.audio::before { content: "🎵"; }
+.file-icon.video::before { content: "🎬"; }
+.file-icon.archive::before { content: "📦"; }
+.file-icon.code::before { content: "💻"; }
+.file-icon.text::before { content: "📝"; }
+.file-icon.unknown::before { content: "❓"; }
+
+/* Modal for image preview */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2001;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-close:hover {
+    background-color: rgba(209, 45, 45, 0.8);
+}
+
+#modalImage {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--border-radius-base);
+}
+
+.modal-info {
+    margin-top: 20px;
+    text-align: center;
+    color: white;
+}
+
+.modal-filename {
+    font-size: 16px;
+    margin-bottom: 10px;
+    word-break: break-word;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-button {
+    background-color: var(--highlight-color);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: var(--border-radius-base);
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.modal-button:hover {
+    background-color: #b02525;
+}
+
+/* Стили кнопок регистрации */
+.auth-button {
+    background-color: var(--highlight-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--border-radius-base);
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.auth-button:hover {
+    background-color: #b02525;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(209, 45, 45, 0.3);
+}
+
+.auth-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(209, 45, 45, 0.2);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .content {
+        flex-direction: column;
+    }
+
+    .left-panel {
+        width: 100%;
+        max-height: 300px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .right-panel, .new-task-form {
+        padding: var(--padding-base);
+    }
+
+    .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .form-row label {
+        width: auto;
+        text-align: left;
+    }
+
+    .right-panel-footer, .form-footer {
+        position: static;
+        justify-content: flex-end;
+        padding: var(--padding-base) 0;
+    }
+}
+
+.auth-container-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.user-info-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Расстояние между именем и кнопкой */
+}
+
+.username-display {
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 1em;
+}
+
+/* Скрываем элемент */
+.hidden {
+    display: none !important;
+}
+
+
+================================================
+FILE: js/api.js
+================================================
+[Binary file]
+
+
+================================================
+FILE: js/auth.js
+================================================
+// js/auth.js (заменить всё содержимое)
+
+import {toast} from './toast.js';
+
+const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+
+// ИСПРАВЛЕНО: Модель для создания пользователя
+class CreateUserModel {
+    constructor({username, password, password_confirm}) {
+        this.username = username;
+        this.password = password;
+        this.password_confirm = password_confirm;
+    }
+}
+
+// Создаем объект для работы с API аутентификации
+export const authApi = {
+    /**
+     * Регистрирует нового пользователя.
+     * @param {object} userData - Данные пользователя { username, password, password_confirm }.
+     * @returns {Promise<object>} - Данные созданного пользователя.
+     */
+    async createNewUser(userData) {
+        // Создаем экземпляр модели для возможной валидации в будущем
+        const userToCreate = new CreateUserModel(userData);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/register/`, { // Используем правильный URL
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(userToCreate),
+            });
+
+            // Если ответ не успешный, получаем текст ошибки от сервера
+            if (!response.ok) {
+                const errorData = await response.json();
+                let messages = [];
+
+                // Если есть detail — добавляем в начало
+                if (errorData.detail) {
+                    messages.push(errorData.detail);
+                }
+
+                // Если есть errors — собираем все msg
+                if (Array.isArray(errorData.errors)) {
+                    messages.push(...errorData.errors.map(err => ":\n" + err.loc[1] + ":\n" + err.msg));
+                }
+
+                const errorMessage = "\n\n" + messages.join('\n');
+                throw new Error(errorMessage || 'Не удалось зарегистрироваться');
+            }
+
+            // ИСПРАВЛЕНО: Возвращаем данные пользователя, а не TaskModel
+            return await response.json();
+
+        } catch (error) {
+            console.error('Ошибка при регистрации пользователя:', error);
+            // Пробрасываем ошибку дальше, чтобы ее поймал обработчик в handlers.js
+            throw error;
+        }
+    },
+
+    /**
+     * Авторизует пользователя.
+     * @param {object} credentials - Данные для входа { username, password }.
+     * @returns {Promise<object>} - Токены доступа.
+     */
+    async loginUser(credentials) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(credentials),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Ошибка авторизации');
+            }
+
+            const data = await response.json();
+            // localStorage.setItem('accessToken', data.access);
+            // localStorage.setItem('refreshToken', data.refresh);
+            return data;
+        } catch (error) {
+            console.error('Ошибка при авторизации:', error);
+            throw error;
+        }
+    },
+    // Эта функция должна делать GET-запрос на эндпоинт, возвращающий данные пользователя
+    // Например, /api/v1/users/me/
+    async getCurrentUser() {
+        const response = await fetch(`${API_BASE_URL}/auth/users/me/`, { // Стандартный эндпоинт для "текущего пользователя"
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error('Нет доступа к пользователям');
+        }
+        return response.json(); // Ожидаем { "username": "имя_пользователя" }
+    }
+};
+
+
+================================================
+FILE: js/handlers.js
+================================================
+import {api, TaskStatus} from './api.js';
+import {toast} from './toast.js';
+import {authApi} from './auth.js';
+
+const newTabButton = document.getElementById('newTab');
+const openTabButton = document.getElementById('openTab');
+const closedTabButton = document.getElementById('closedTab');
+
+const newContent = document.getElementById('newContent');
+const openContent = document.getElementById('openContent');
+const closedContent = document.getElementById('closedContent');
+
+const fileDropArea = document.getElementById('fileDropArea');
+const fileInput = document.getElementById('files');
+const fileListContainer = document.getElementById('fileListContainer');
+const newTaskForm = document.querySelector('.new-task-form');
+
+const searchInput = document.getElementById('searchInput');
+const searchInputClosed = document.getElementById('searchInputClosed');
+
+const authModal = document.getElementById('authModal');
+const authContainer = document.getElementById('authContainer');
+const openAuthBtn = document.getElementById('registerBtn'); // Кнопка "Регистрация" в шапке
+const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');
+const switchToLoginBtn = document.getElementById('switchToLoginBtn');
+const registerForm = document.getElementById('registerForm');
+const loginForm = document.getElementById('loginForm');
+const loginButtonsBlock = document.getElementById('loginButtons')
+const outButtons = document.getElementById('outButtons')
+const logoutBtn = document.getElementById('logoutBtn')
+// --- Внутреннее состояние ---
+let openTasksCache = [];
+let closedTasksCache = [];
+let selectedFiles = []; // Хранит выбранные для загрузки файлы
+let searchTimeout = null;
+
+/**
+ * Переключает активную вкладку.
+ * @param {'new' | 'open' | 'closed'} activeTab - Идентификатор вкладки.
+ */
+function switchTab(activeTab) {
+    [newTabButton, openTabButton, closedTabButton].forEach(btn => btn.classList.remove('active'));
+    [newContent, openContent, closedContent].forEach(content => content.classList.add('hidden'));
+
+    if (activeTab === 'new') {
+        newTabButton.classList.add('active');
+        newContent.classList.remove('hidden');
+    } else if (activeTab === 'open') {
+        openTabButton.classList.add('active');
+        openContent.classList.remove('hidden');
+        loadTasks(openContent, (search) => api.getOpenTasks(search), openTasksCache, 'open');
+    } else if (activeTab === 'closed') {
+        closedTabButton.classList.add('active');
+        closedContent.classList.remove('hidden');
+        loadTasks(closedContent, (search) => api.getClosedTasks(search), closedTasksCache, 'closed');
+    }
+}
+
+/**
+ * Динамически загружает и отображает задачи.
+ * @param {HTMLElement} contentElement - Элемент контента вкладки (`openContent` или `closedContent`).
+ * @param {(search: string) => Promise<import('./api.js').TaskModel[]>} fetchApiCall - Функция API для получения задач.
+ * @param {import('./api.js').TaskModel[]} cacheArray - Массив для кэширования задач.
+ * @param {string} tabType - Тип вкладки ('open' или 'closed').
+ */
+async function loadTasks(contentElement, fetchApiCall, cacheArray, tabType) {
+    const listItemsContainer = contentElement.querySelector('.tasks-list');
+    const rightPanelContainer = contentElement.querySelector('.right-panel');
+    const searchInput = contentElement.querySelector('.search-input');
+    const searchQuery = searchInput ? searchInput.value : '';
+
+    try {
+        const tasks = await fetchApiCall(searchQuery);
+        cacheArray.splice(0, cacheArray.length, ...tasks); // Очищаем и заполняем кэш
+
+        listItemsContainer.innerHTML = '';
+        if (tasks.length === 0) {
+            const emptyMessage = searchQuery
+                ? 'По вашему запросу ничего не найдено.'
+                : 'Задач нет.';
+            listItemsContainer.innerHTML = `<div style="padding: var(--padding-base); text-align: center; color: var(--light-text-color);">${emptyMessage}</div>`;
+            clearRightPanel(rightPanelContainer);
+            return;
+        }
+
+        tasks.forEach(task => {
+            const listItem = document.createElement('div');
+            listItem.className = 'list-item';
+            listItem.dataset.itemId = task.id;
+
+            // Добавляем бейдж статуса для открытых задач
+            const statusBadge = tabType === 'open' ? getStatusBadge(task.status) : '';
+
+            listItem.innerHTML = `
+                <div class="item-id">${task.project}-${task.id}${statusBadge}</div>
+                <div class="item-desc">${task.title}</div>`;
+            listItem.addEventListener('click', () => handleListItemClick(task.id, contentElement));
+            listItemsContainer.appendChild(listItem);
+        });
+
+        // Автоматически выбираем первый элемент
+        if (listItemsContainer.firstElementChild && !listItemsContainer.firstElementChild.textContent.includes('По вашему запросу')) {
+            listItemsContainer.firstElementChild.click();
+        } else {
+            clearRightPanel(rightPanelContainer);
+        }
+
+    } catch (error) {
+        console.error('Не удалось загрузить задачи:', error);
+        toast.error(`Ошибка загрузки задач: ${error.message}`);
+        listItemsContainer.innerHTML = '<div style="padding: var(--padding-base); text-align: center; color: var(--highlight-color);">Ошибка загрузки задач.</div>';
+        clearRightPanel(rightPanelContainer);
+    }
+}
+
+/**
+ * Возвращает HTML для бейджа статуса задачи.
+ * @param {string} status - Статус задачи.
+ * @returns {string} HTML строка с бейджем.
+ */
+function getStatusBadge(status) {
+    const statusLabels = {
+        [TaskStatus.NEW]: 'Новая',
+        [TaskStatus.IN_PROGRESS]: 'В процессе',
+        [TaskStatus.DONE]: 'Выполнена'
+    };
+
+    const statusClass = status.replace('_', '-');
+    const label = statusLabels[status] || status;
+
+    return `<span class="task-status-badge ${statusClass}">${label}</span>`;
+}
+
+/**
+ * Очищает правую панель с деталями задачи.
+ * @param {HTMLElement} rightPanelContainer - Элемент правой панели.
+ */
+function clearRightPanel(rightPanelContainer) {
+    rightPanelContainer.querySelector('.right-panel-title').textContent = 'Выберите задачу';
+    rightPanelContainer.querySelector('.right-panel .details').innerHTML = '';
+    rightPanelContainer.querySelector('.right-panel-description').textContent = '';
+
+    // Очищаем файлы
+    const filesGrid = rightPanelContainer.querySelector('.files-grid');
+    if (filesGrid) {
+        filesGrid.innerHTML = '';
+    }
+}
+
+/**
+ * Отображает детали выбранной задачи.
+ * @param {import('./api.js').TaskModel} task - Объект задачи.
+ * @param {HTMLElement} rightPanelContainer - Элемент правой панели.
+ */
+function displayTaskDetails(task, rightPanelContainer) {
+    rightPanelContainer.querySelector('.right-panel-title').textContent = task.title;
+    rightPanelContainer.querySelector('.details').innerHTML = `
+        <p>Дата: ${task.created_at.toLocaleDateString()} - ${task.updated_at.toLocaleDateString()}</p>
+        <p>Проект: ${task.project}</p>
+        <p>ЛПУ: ${task.organisation}</p>`;
+    rightPanelContainer.querySelector('.right-panel-description').textContent = task.description;
+
+    // Отображаем все файлы
+    displayTaskFiles(task.files, rightPanelContainer);
+}
+
+/**
+ * Отображает файлы задачи в сетке.
+ * @param {import('./api.js').FileModel[]} files - Массив файлов.
+ * @param {HTMLElement} rightPanelContainer - Элемент правой панели.
+ */
+function displayTaskFiles(files, rightPanelContainer) {
+    const filesGrid = rightPanelContainer.querySelector('.files-grid');
+
+    if (!filesGrid) {
+        console.error('Элемент .files-grid не найден в DOM');
+        return;
+    }
+
+    if (!files || files.length === 0) {
+        filesGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--light-text-color); padding: 20px;">Файлы не прикреплены</div>';
+        return;
+    }
+
+    filesGrid.innerHTML = '';
+
+    files.forEach(file => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.dataset.fileId = file.id;
+
+        const thumbnail = createFileThumbnail(file);
+        const fileName = document.createElement('div');
+        fileName.className = 'file-name';
+        fileName.textContent = file.filename;
+
+        const fileSize = document.createElement('div');
+        fileSize.className = 'file-size';
+        fileSize.textContent = formatFileSize(file.size || 0);
+
+        fileItem.appendChild(thumbnail);
+        fileItem.appendChild(fileName);
+        fileItem.appendChild(fileSize);
+
+        // Добавляем обработчик клика
+        fileItem.addEventListener('click', () => handleFileClick(file));
+
+        filesGrid.appendChild(fileItem);
+    });
+}
+
+/**
+ * Создает миниатюру файла.
+ * @param {import('./api.js').FileModel} file - Объект файла.
+ * @returns {HTMLElement} Элемент миниатюры.
+ */
+function createFileThumbnail(file) {
+    const thumbnail = document.createElement('div');
+    thumbnail.className = 'file-thumbnail';
+
+    if (file.mimetype && file.mimetype.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = file.url;
+        img.alt = file.filename;
+        img.onerror = () => {
+            // Если изображение не загрузилось, показываем иконку
+            thumbnail.innerHTML = '<div class="file-icon image"></div>';
+        };
+        thumbnail.appendChild(img);
+    } else {
+        const icon = document.createElement('div');
+        icon.className = `file-icon ${getFileTypeClass(file.mimetype)}`;
+        thumbnail.appendChild(icon);
+    }
+
+    return thumbnail;
+}
+
+/**
+ * Определяет класс CSS для типа файла.
+ * @param {string} mimetype - MIME тип файла.
+ * @returns {string} Класс CSS.
+ */
+function getFileTypeClass(mimetype) {
+    if (!mimetype) return 'unknown';
+
+    if (mimetype.startsWith('image/')) return 'image';
+    if (mimetype.startsWith('video/')) return 'video';
+    if (mimetype.startsWith('audio/')) return 'audio';
+    if (mimetype.includes('pdf')) return 'pdf';
+    if (mimetype.includes('text/') || mimetype.includes('json') || mimetype.includes('xml')) return 'text';
+    if (mimetype.includes('zip') || mimetype.includes('rar') || mimetype.includes('7z')) return 'archive';
+    if (mimetype.includes('javascript') || mimetype.includes('python') || mimetype.includes('java')) return 'code';
+    if (mimetype.includes('document') || mimetype.includes('word') || mimetype.includes('excel')) return 'document';
+
+    return 'unknown';
+}
+
+/**
+ * Форматирует размер файла в читаемый вид.
+ * @param {number} bytes - Размер в байтах.
+ * @returns {string} Форматированный размер.
+ */
+function formatFileSize(bytes) {
+    if (bytes === 0) return '';
+
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+/**
+ * Обрабатывает клик по файлу.
+ * @param {import('./api.js').FileModel} file - Объект файла.
+ */
+function handleFileClick(file) {
+    if (file.mimetype && file.mimetype.startsWith('image/')) {
+        // Для изображений открываем модальное окно
+        openImageModal(file);
+    } else {
+        // Для других файлов просто скачиваем
+        downloadFile(file);
+    }
+}
+
+/**
+ * Открывает модальное окно с изображением.
+ * @param {import('./api.js').FileModel} file - Объект файла изображения.
+ */
+function openImageModal(file) {
+    const modal = document.getElementById('imageModal');
+    if (!modal) {
+        console.error('Модальное окно imageModal не найдено');
+        return;
+    }
+
+    const modalImage = document.getElementById('modalImage');
+    const modalFilename = modal.querySelector('.modal-filename');
+    const modalDownload = document.getElementById('modalDownload');
+
+    if (!modalImage || !modalFilename || !modalDownload) {
+        console.error('Элементы модального окна не найдены');
+        return;
+    }
+
+    modalImage.src = file.url;
+    modalImage.alt = file.filename;
+    modalFilename.textContent = file.filename;
+    modalDownload.href = file.url;
+    modalDownload.download = file.filename;
+
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+/**
+ * Закрывает модальное окно с изображением.
+ */
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    if (!modal) {
+        console.error('Модальное окно imageModal не найдено');
+        return;
+    }
+
+    modal.classList.remove('show');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+/**
+ * Скачивает файл.
+ * @param {import('./api.js').FileModel} file - Объект файла.
+ */
+function downloadFile(file) {
+    const link = document.createElement('a');
+    link.href = file.url;
+    link.download = file.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Обрабатывает клик по элементу списка задач.
+ * @param {number} taskId - ID задачи.
+ * @param {HTMLElement} currentContentElement - Текущий элемент контента вкладки.
+ */
+async function handleListItemClick(taskId, currentContentElement) {
+    const rightPanelContainer = currentContentElement.querySelector('.right-panel');
+    const cache = (currentContentElement === openContent) ? openTasksCache : closedTasksCache;
+
+    // Снимаем выделение со старого элемента и выделяем новый
+    const currentActive = currentContentElement.querySelector('.list-item.active');
+    if (currentActive) currentActive.classList.remove('active');
+    currentContentElement.querySelector(`.list-item[data-item-id="${taskId}"]`).classList.add('active');
+
+    try {
+        let task = cache.find(t => t.id === taskId);
+        if (!task) task = await api.getTaskById(taskId); // Если в кэше нет, загружаем
+        displayTaskDetails(task, rightPanelContainer);
+    } catch (error) {
+        console.error(`Ошибка при получении деталей задачи ${taskId}:`, error);
+        toast.error(`Не удалось загрузить детали задачи: ${error.message}`);
+        clearRightPanel(rightPanelContainer);
+    }
+}
+
+/**
+ * Отображает список выбранных файлов в форме.
+ */
+function renderFileList() {
+    fileListContainer.innerHTML = ''; // Очищаем контейнер
+    if (selectedFiles.length === 0) {
+        fileDropArea.querySelector('span').style.display = 'block';
+        fileDropArea.childNodes[0].nodeValue = 'Кликните для выбора файлов или просто перетащите их сюда';
+    } else {
+        fileDropArea.querySelector('span').style.display = 'none';
+        fileDropArea.childNodes[0].nodeValue = `Выбрано файлов: ${selectedFiles.length}. Перетащите еще или кликните.`;
+    }
+
+    selectedFiles.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-list-item';
+        fileItem.textContent = file.name;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'file-remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.type = 'button'; // Важно, чтобы не сабмитить форму
+        removeBtn.onclick = () => {
+            selectedFiles.splice(index, 1); // Удаляем файл из массива
+            renderFileList(); // Перерисовываем список
+        };
+
+        fileItem.appendChild(removeBtn);
+        fileListContainer.appendChild(fileItem);
+    });
+}
+
+/**
+ * Обрабатывает добавление файлов (через drag-n-drop или выбор).
+ * @param {FileList} newFiles - Список добавленных файлов.
+ */
+function handleFiles(newFiles) {
+    // Преобразуем FileList в массив и добавляем только уникальные файлы
+    Array.from(newFiles).forEach(file => {
+        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+            selectedFiles.push(file);
+        }
+    });
+    renderFileList(); // Обновляем UI
+}
+
+/**
+ * Обрабатывает поиск задач с дебаунсом.
+ * @param {HTMLElement} contentElement - Элемент контента вкладки.
+ * @param {(search: string) => Promise<import('./api.js').TaskModel[]>} fetchApiCall - Функция API для получения задач.
+ * @param {import('./api.js').TaskModel[]} cacheArray - Массив для кэширования задач.
+ * @param {string} tabType - Тип вкладки ('open' или 'closed').
+ */
+function handleSearch(contentElement, fetchApiCall, cacheArray, tabType) {
+    // Очищаем предыдущий таймаут
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+
+    // Устанавливаем новый таймаут для дебаунса
+    searchTimeout = setTimeout(() => {
+        loadTasks(contentElement, fetchApiCall, cacheArray, tabType);
+    }, 300); // 300мс задержка
+}
+
+/**
+ * Проверяет при загрузке страницы, авторизован ли пользователь,
+ * и обновляет UI соответственно.
+ */
+async function checkInitialAuthStatus() {
+    try {
+        // Пытаемся получить данные о пользователе. Если токен есть и он валиден, все получится.
+        const user = await authApi.getCurrentUser();
+        loginButtonsBlock.classList.remove('show');
+        loginButtonsBlock.classList.add('hidden');
+        outButtons.classList.remove('hidden');
+        outButtons.classList.add('show');
+    } catch (error) {
+        // Если токена нет или он невалиден, функция getCurrentUser() вызовет ошибку.
+        outButtons.classList.remove('show');
+        outButtons.classList.add('hidden');
+        loginButtonsBlock.classList.remove('hidden');
+        loginButtonsBlock.classList.add('show');
+    }
+}
+
+/** Инициализация обработчиков событий */
+export function setupEventListeners() {
+    checkInitialAuthStatus()
+    // Переключение вкладок
+    newTabButton.addEventListener('click', () => switchTab('new'));
+    openTabButton.addEventListener('click', () => switchTab('open'));
+    closedTabButton.addEventListener('click', () => switchTab('closed'));
+
+    // Поиск задач
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            handleSearch(openContent, (search) => api.getOpenTasks(search), openTasksCache, 'open');
+        });
+    }
+
+    if (searchInputClosed) {
+        searchInputClosed.addEventListener('input', () => {
+            handleSearch(closedContent, (search) => api.getClosedTasks(search), closedTasksCache, 'closed');
+        });
+    }
+
+    // --- Логика для загрузки файлов ---
+    fileDropArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    // Drag and Drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        fileDropArea.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+    ['dragenter', 'dragover'].forEach(eventName => {
+        fileDropArea.addEventListener(eventName, () => fileDropArea.classList.add('highlight'), false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        fileDropArea.addEventListener(eventName, () => fileDropArea.classList.remove('highlight'), false);
+    });
+    fileDropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
+
+    // --- Логика для формы создания задачи ---
+    newTaskForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const lpuInput = document.getElementById('lpu');
+
+        const taskData = {
+            title: document.getElementById('subject').value,
+            description: document.getElementById('text').value,
+            project: document.getElementById('taskType').value,
+            organisation: lpuInput.value, // Используем полное название, а не код
+        };
+
+        try {
+            // 1. Создаем задачу
+            const newTask = await api.createTask(taskData);
+            toast.success(`Задача "${newTask.title}" (ID: ${newTask.id}) успешно создана!`);
+
+            // 2. Загружаем файлы, если они есть
+            if (selectedFiles.length > 0) {
+                await api.uploadFilesForTask(newTask.id, selectedFiles);
+                toast.success(`Файлы (${selectedFiles.length} шт.) успешно загружены для задачи ${newTask.id}.`);
+            }
+
+            // 3. Сбрасываем форму и очищаем список файлов
+            newTaskForm.reset();
+            selectedFiles = [];
+            renderFileList();
+            switchTab('open'); // Переключаемся на вкладку с открытыми задачами
+        } catch (error) {
+            console.error('Ошибка при создании задачи или загрузке файлов:', error);
+            toast.error(`Ошибка: ${error.message || 'Не удалось создать задачу.'}`);
+        }
+    });
+
+    // --- Обработчики для модального окна ---
+    const imageModal = document.getElementById('imageModal');
+
+    if (imageModal) {
+        const modalClose = imageModal.querySelector('.modal-close');
+
+        if (modalClose) {
+            modalClose.addEventListener('click', closeImageModal);
+        }
+
+        // Закрытие модального окна по клику на фон
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal) {
+                closeImageModal();
+            }
+        });
+    }
+
+    // Закрытие модального окна по нажатию Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const imageModal = document.getElementById('imageModal');
+            if (imageModal && !imageModal.classList.contains('hidden')) {
+                closeImageModal();
+            }
+        }
+    });
+
+    // Открытие модального окна
+    openAuthBtn.addEventListener("click", () => {
+        authModal.classList.remove('hidden');
+        setTimeout(() => authModal.classList.add('show'), 10); // Плавное появление
+    });
+
+    // Закрытие модального окна по клику на фон
+    authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) {
+            authModal.classList.remove('show');
+            setTimeout(() => authModal.classList.add('hidden'), 300);
+        }
+    });
+
+    // Переключение на панель регистрации
+    switchToRegisterBtn.addEventListener('click', () => {
+        authContainer.classList.add('right-panel-active');
+    });
+
+    // Переключение на панель входа
+    switchToLoginBtn.addEventListener('click', () => {
+        authContainer.classList.remove('right-panel-active');
+    });
+
+    // НОВЫЙ ОБРАБОТЧИК: Отправка формы регистрации
+    registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Предотвращаем стандартную отправку формы
+
+        const formData = new FormData(registerForm);
+        const data = Object.fromEntries(formData.entries());
+
+        // Простая валидация на клиенте
+        if (data.password !== data.password_confirm) {
+            toast.error('Пароли не совпадают!');
+            return;
+        }
+
+        try {
+            const newUser = await authApi.createNewUser(data);
+            toast.success(`Пользователь ${newUser.username} успешно зарегистрирован!`);
+            registerForm.reset(); // Очищаем форму
+
+            // Автоматически переключаем на панель входа
+            authContainer.classList.remove('right-panel-active');
+
+        } catch (error) {
+            toast.error(`Ошибка регистрации: ${error.message}`);
+        }
+    });
+
+
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(loginForm);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            await authApi.loginUser(data);
+            toast.success(`Добро пожаловать, ${data.username}!`);
+            // Здесь можно закрыть модальное окно и обновить интерфейс
+            authModal.classList.remove('show');
+            setTimeout(() => authModal.classList.add('hidden'), 300);
+            loginButtonsBlock.classList.add('hidden')
+            outButtons.classList.remove('hidden')
+            outButtons.classList.add('show')
+            // TODO: Обновить UI, показать имя пользователя, скрыть кнопки "Вход/Регистрация"
+        } catch (error) {
+            toast.error(`Ошибка входа: ${error.message}`);
+        }
+    });
+
+    logoutBtn.addEventListener('submit')
+}
+
+
+
+================================================
+FILE: js/main.js
+================================================
+import { setupEventListeners } from './handlers.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Инициализируем все обработчики событий
+    setupEventListeners();
+
+    // По умолчанию открываем вкладку "Новая"
+    document.getElementById('newTab').click();
+});
+
+
+================================================
+FILE: js/toast.js
+================================================
+/**
+ * Toast notification system
+ */
+
+const TOAST_TYPES = {
+    SUCCESS: 'success',
+    ERROR: 'error',
+    INFO: 'info'
+};
+
+const TOAST_DURATION = {
+    SHORT: 3000,
+    MEDIUM: 5000,
+    LONG: 8000
+};
+
+class ToastManager {
+    constructor() {
+        this.container = document.getElementById('toastContainer');
+        if (!this.container) {
+            console.error('Toast container not found! Make sure there is an element with id="toastContainer"');
+        }
+    }
+
+    /**
+     * Показывает toast уведомление
+     * @param {string} message - Текст сообщения
+     * @param {string} type - Тип уведомления (success, error, info)
+     * @param {number} duration - Длительность показа в миллисекундах
+     */
+    show(message, type = TOAST_TYPES.INFO, duration = TOAST_DURATION.MEDIUM) {
+        if (!this.container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const closeButton = document.createElement('button');
+        closeButton.className = 'toast-close';
+        closeButton.innerHTML = '×';
+        closeButton.addEventListener('click', () => this.remove(toast));
+
+        toast.innerHTML = `
+            <div>${message}</div>
+        `;
+        toast.appendChild(closeButton);
+
+        this.container.appendChild(toast);
+
+        // Анимация появления
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        // Автоматическое удаление
+        setTimeout(() => {
+            this.remove(toast);
+        }, duration);
+
+        return toast;
+    }
+
+    /**
+     * Удаляет toast уведомление
+     * @param {HTMLElement} toast - Элемент toast
+     */
+    remove(toast) {
+        if (!toast || !toast.parentNode) return;
+
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }
+
+    /**
+     * Показывает уведомление об успехе
+     * @param {string} message - Текст сообщения
+     * @param {number} duration - Длительность показа
+     */
+    success(message, duration = TOAST_DURATION.MEDIUM) {
+        return this.show(message, TOAST_TYPES.SUCCESS, duration);
+    }
+
+    /**
+     * Показывает уведомление об ошибке
+     * @param {string} message - Текст сообщения
+     * @param {number} duration - Длительность показа
+     */
+    error(message, duration = TOAST_DURATION.LONG) {
+        return this.show(message, TOAST_TYPES.ERROR, duration);
+    }
+
+    /**
+     * Показывает информационное уведомление
+     * @param {string} message - Текст сообщения
+     * @param {number} duration - Длительность показа
+     */
+    info(message, duration = TOAST_DURATION.MEDIUM) {
+        return this.show(message, TOAST_TYPES.INFO, duration);
+    }
+
+    /**
+     * Очищает все toast уведомления
+     */
+    clear() {
+        if (!this.container) return;
+        
+        const toasts = this.container.querySelectorAll('.toast');
+        toasts.forEach(toast => this.remove(toast));
+    }
+}
+
+// Создаем глобальный экземпляр
+const toast = new ToastManager();
+
+export { toast, TOAST_TYPES, TOAST_DURATION };
+
+

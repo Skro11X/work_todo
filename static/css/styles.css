@@ -721,3 +721,25 @@ body {
         padding: var(--padding-base) 0;
     }
 }
+
+.auth-container-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.user-info-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Расстояние между именем и кнопкой */
+}
+
+.username-display {
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 1em;
+}
+
+/* Скрываем элемент */
+.hidden {
+    display: none !important;
+}

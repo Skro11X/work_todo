@@ -19,8 +19,13 @@ class UserRepository:
         await self._session.commit()
         return result.scalar()
 
-    async def get(self, username: str) -> User:
-        stmt = select(User).where(User.id == username)
+    async def get(self, id: str) -> User:
+        stmt = select(User).where(User.id == id)
+        result = await self._session.execute(stmt)
+        return result.scalar()
+
+    async def get_by_username(self, username: str) -> User:
+        stmt = select(User).where(User.username == username)
         result = await self._session.execute(stmt)
         return result.scalar()
 

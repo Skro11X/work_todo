@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
-from jose import jwt
+from jose import jwt, JWTError
 
 from app.config import settings
 
@@ -16,7 +16,7 @@ def create_tokens(data: dict) -> dict:
     access_token = jwt.encode(
         access_payload,
         settings.JWT.PUBLIC_KEY_PATH,
-        algorithm=settings.ALGORITHM
+        algorithm=settings.JWT.ALGORITHM
     )
 
     # RefreshToken - 7 дней
@@ -26,6 +26,19 @@ def create_tokens(data: dict) -> dict:
     refresh_token = jwt.encode(
         refresh_payload,
         settings.JWT.PRIVATE_KEY,
-        algorithm=settings.ALGORITHM
+        algorithm=settings.JWT.ALGORITHM
     )
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+def get_data_from_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT.PUBLIC_KEY_PATH,  # или PRIVATE_KEY, зависит от того, чем ты кодировал
+            algorithms=[settings.JWT.ALGORITHM]
+        )
+        return payload
+    except JWTError as e:
+        # токен недействителен, истёк или подпись неверна
+        raise ValueError(f"Invalid token: {e}")

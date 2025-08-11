@@ -1,6 +1,6 @@
-import { api, TaskStatus } from './api.js';
-import { toast } from './toast.js';
-import { get_form } from './auth.js';
+import {api, TaskStatus} from './api.js';
+import {toast} from './toast.js';
+import {authApi} from './auth.js';
 
 const newTabButton = document.getElementById('newTab');
 const openTabButton = document.getElementById('openTab');
@@ -18,9 +18,16 @@ const newTaskForm = document.querySelector('.new-task-form');
 const searchInput = document.getElementById('searchInput');
 const searchInputClosed = document.getElementById('searchInputClosed');
 
-const registerBtn = document.getElementById("registerBtn")
-const signUpButton = document.getElementById('signUp');
-const signInButton = document.getElementById('signIn');
+const authModal = document.getElementById('authModal');
+const authContainer = document.getElementById('authContainer');
+const openAuthBtn = document.getElementById('registerBtn'); // Кнопка "Регистрация" в шапке
+const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');
+const switchToLoginBtn = document.getElementById('switchToLoginBtn');
+const registerForm = document.getElementById('registerForm');
+const loginForm = document.getElementById('loginForm');
+const loginButtonsBlock = document.getElementById('loginButtons')
+const outButtons = document.getElementById('outButtons')
+const logoutBtn = document.getElementById('logoutBtn')
 // --- Внутреннее состояние ---
 let openTasksCache = [];
 let closedTasksCache = [];
@@ -68,8 +75,8 @@ async function loadTasks(contentElement, fetchApiCall, cacheArray, tabType) {
 
         listItemsContainer.innerHTML = '';
         if (tasks.length === 0) {
-            const emptyMessage = searchQuery 
-                ? 'По вашему запросу ничего не найдено.' 
+            const emptyMessage = searchQuery
+                ? 'По вашему запросу ничего не найдено.'
                 : 'Задач нет.';
             listItemsContainer.innerHTML = `<div style="padding: var(--padding-base); text-align: center; color: var(--light-text-color);">${emptyMessage}</div>`;
             clearRightPanel(rightPanelContainer);
@@ -80,10 +87,10 @@ async function loadTasks(contentElement, fetchApiCall, cacheArray, tabType) {
             const listItem = document.createElement('div');
             listItem.className = 'list-item';
             listItem.dataset.itemId = task.id;
-            
+
             // Добавляем бейдж статуса для открытых задач
             const statusBadge = tabType === 'open' ? getStatusBadge(task.status) : '';
-            
+
             listItem.innerHTML = `
                 <div class="item-id">${task.project}-${task.id}${statusBadge}</div>
                 <div class="item-desc">${task.title}</div>`;
@@ -117,10 +124,10 @@ function getStatusBadge(status) {
         [TaskStatus.IN_PROGRESS]: 'В процессе',
         [TaskStatus.DONE]: 'Выполнена'
     };
-    
+
     const statusClass = status.replace('_', '-');
     const label = statusLabels[status] || status;
-    
+
     return `<span class="task-status-badge ${statusClass}">${label}</span>`;
 }
 
@@ -132,7 +139,7 @@ function clearRightPanel(rightPanelContainer) {
     rightPanelContainer.querySelector('.right-panel-title').textContent = 'Выберите задачу';
     rightPanelContainer.querySelector('.right-panel .details').innerHTML = '';
     rightPanelContainer.querySelector('.right-panel-description').textContent = '';
-    
+
     // Очищаем файлы
     const filesGrid = rightPanelContainer.querySelector('.files-grid');
     if (filesGrid) {
@@ -164,40 +171,40 @@ function displayTaskDetails(task, rightPanelContainer) {
  */
 function displayTaskFiles(files, rightPanelContainer) {
     const filesGrid = rightPanelContainer.querySelector('.files-grid');
-    
+
     if (!filesGrid) {
         console.error('Элемент .files-grid не найден в DOM');
         return;
     }
-    
+
     if (!files || files.length === 0) {
         filesGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--light-text-color); padding: 20px;">Файлы не прикреплены</div>';
         return;
     }
 
     filesGrid.innerHTML = '';
-    
+
     files.forEach(file => {
         const fileItem = document.createElement('div');
         fileItem.className = 'file-item';
         fileItem.dataset.fileId = file.id;
-        
+
         const thumbnail = createFileThumbnail(file);
         const fileName = document.createElement('div');
         fileName.className = 'file-name';
         fileName.textContent = file.filename;
-        
+
         const fileSize = document.createElement('div');
         fileSize.className = 'file-size';
         fileSize.textContent = formatFileSize(file.size || 0);
-        
+
         fileItem.appendChild(thumbnail);
         fileItem.appendChild(fileName);
         fileItem.appendChild(fileSize);
-        
+
         // Добавляем обработчик клика
         fileItem.addEventListener('click', () => handleFileClick(file));
-        
+
         filesGrid.appendChild(fileItem);
     });
 }
@@ -210,7 +217,7 @@ function displayTaskFiles(files, rightPanelContainer) {
 function createFileThumbnail(file) {
     const thumbnail = document.createElement('div');
     thumbnail.className = 'file-thumbnail';
-    
+
     if (file.mimetype && file.mimetype.startsWith('image/')) {
         const img = document.createElement('img');
         img.src = file.url;
@@ -225,7 +232,7 @@ function createFileThumbnail(file) {
         icon.className = `file-icon ${getFileTypeClass(file.mimetype)}`;
         thumbnail.appendChild(icon);
     }
-    
+
     return thumbnail;
 }
 
@@ -236,7 +243,7 @@ function createFileThumbnail(file) {
  */
 function getFileTypeClass(mimetype) {
     if (!mimetype) return 'unknown';
-    
+
     if (mimetype.startsWith('image/')) return 'image';
     if (mimetype.startsWith('video/')) return 'video';
     if (mimetype.startsWith('audio/')) return 'audio';
@@ -245,7 +252,7 @@ function getFileTypeClass(mimetype) {
     if (mimetype.includes('zip') || mimetype.includes('rar') || mimetype.includes('7z')) return 'archive';
     if (mimetype.includes('javascript') || mimetype.includes('python') || mimetype.includes('java')) return 'code';
     if (mimetype.includes('document') || mimetype.includes('word') || mimetype.includes('excel')) return 'document';
-    
+
     return 'unknown';
 }
 
@@ -256,11 +263,11 @@ function getFileTypeClass(mimetype) {
  */
 function formatFileSize(bytes) {
     if (bytes === 0) return '';
-    
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
@@ -288,22 +295,22 @@ function openImageModal(file) {
         console.error('Модальное окно imageModal не найдено');
         return;
     }
-    
+
     const modalImage = document.getElementById('modalImage');
     const modalFilename = modal.querySelector('.modal-filename');
     const modalDownload = document.getElementById('modalDownload');
-    
+
     if (!modalImage || !modalFilename || !modalDownload) {
         console.error('Элементы модального окна не найдены');
         return;
     }
-    
+
     modalImage.src = file.url;
     modalImage.alt = file.filename;
     modalFilename.textContent = file.filename;
     modalDownload.href = file.url;
     modalDownload.download = file.filename;
-    
+
     modal.classList.remove('hidden');
     setTimeout(() => modal.classList.add('show'), 10);
 }
@@ -317,7 +324,7 @@ function closeImageModal() {
         console.error('Модальное окно imageModal не найдено');
         return;
     }
-    
+
     modal.classList.remove('show');
     setTimeout(() => modal.classList.add('hidden'), 300);
 }
@@ -369,7 +376,7 @@ function renderFileList() {
         fileDropArea.querySelector('span').style.display = 'block';
         fileDropArea.childNodes[0].nodeValue = 'Кликните для выбора файлов или просто перетащите их сюда';
     } else {
-         fileDropArea.querySelector('span').style.display = 'none';
+        fileDropArea.querySelector('span').style.display = 'none';
         fileDropArea.childNodes[0].nodeValue = `Выбрано файлов: ${selectedFiles.length}. Перетащите еще или кликните.`;
     }
 
@@ -418,15 +425,41 @@ function handleSearch(contentElement, fetchApiCall, cacheArray, tabType) {
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
-    
+
     // Устанавливаем новый таймаут для дебаунса
     searchTimeout = setTimeout(() => {
         loadTasks(contentElement, fetchApiCall, cacheArray, tabType);
     }, 300); // 300мс задержка
 }
 
+/**
+ * Проверяет при загрузке страницы, авторизован ли пользователь,
+ * и обновляет UI соответственно.
+ */
+async function checkInitialAuthStatus() {
+    try {
+        // Пытаемся получить данные о пользователе. Если токен есть и он валиден, все получится.
+        const user = await authApi.getCurrentUser();
+        loginButtonsBlock.classList.remove('show');
+        loginButtonsBlock.classList.add('hidden');
+        outButtons.classList.remove('hidden');
+        outButtons.classList.add('show');
+        const usernameDisplayById = outButtons.querySelector('#usernameDisplay');
+        if (usernameDisplayById) {
+            usernameDisplayById.textContent = user.username;
+        }
+    } catch (error) {
+        // Если токена нет или он невалиден, функция getCurrentUser() вызовет ошибку.
+        outButtons.classList.remove('show');
+        outButtons.classList.add('hidden');
+        loginButtonsBlock.classList.remove('hidden');
+        loginButtonsBlock.classList.add('show');
+    }
+}
+
 /** Инициализация обработчиков событий */
 export function setupEventListeners() {
+    checkInitialAuthStatus()
     // Переключение вкладок
     newTabButton.addEventListener('click', () => switchTab('new'));
     openTabButton.addEventListener('click', () => switchTab('open'));
@@ -438,7 +471,7 @@ export function setupEventListeners() {
             handleSearch(openContent, (search) => api.getOpenTasks(search), openTasksCache, 'open');
         });
     }
-    
+
     if (searchInputClosed) {
         searchInputClosed.addEventListener('input', () => {
             handleSearch(closedContent, (search) => api.getClosedTasks(search), closedTasksCache, 'closed');
@@ -500,14 +533,14 @@ export function setupEventListeners() {
 
     // --- Обработчики для модального окна ---
     const imageModal = document.getElementById('imageModal');
-    
+
     if (imageModal) {
         const modalClose = imageModal.querySelector('.modal-close');
-        
+
         if (modalClose) {
             modalClose.addEventListener('click', closeImageModal);
         }
-        
+
         // Закрытие модального окна по клику на фон
         imageModal.addEventListener('click', (e) => {
             if (e.target === imageModal) {
@@ -515,7 +548,7 @@ export function setupEventListeners() {
             }
         });
     }
-    
+
     // Закрытие модального окна по нажатию Escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -525,23 +558,90 @@ export function setupEventListeners() {
             }
         }
     });
-//     Открытие модального окна формы и регистрации
-    registerBtn.addEventListener("click", () => {
-            const wrapper = document.getElementById('authModal');
 
-            wrapper.classList.remove('hidden');
-            wrapper.classList.add('show');
-    })
-    signUpButton.addEventListener('click', () => {
-        const wrapper = document.getElementById('authModal');
-        const container = wrapper.querySelector('#container');
-        container.classList.add('right-panel-active');
-    })
+    // Открытие модального окна
+    openAuthBtn.addEventListener("click", () => {
+        authModal.classList.remove('hidden');
+        setTimeout(() => authModal.classList.add('show'), 10); // Плавное появление
+    });
+
+    // Закрытие модального окна по клику на фон
+    authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) {
+            authModal.classList.remove('show');
+            setTimeout(() => authModal.classList.add('hidden'), 300);
+        }
+    });
+
+    // Переключение на панель регистрации
+    switchToRegisterBtn.addEventListener('click', () => {
+        authContainer.classList.add('right-panel-active');
+    });
+
+    // Переключение на панель входа
+    switchToLoginBtn.addEventListener('click', () => {
+        authContainer.classList.remove('right-panel-active');
+    });
+
+    // НОВЫЙ ОБРАБОТЧИК: Отправка формы регистрации
+    registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Предотвращаем стандартную отправку формы
+
+        const formData = new FormData(registerForm);
+        const data = Object.fromEntries(formData.entries());
+
+        // Простая валидация на клиенте
+        if (data.password !== data.password_confirm) {
+            toast.error('Пароли не совпадают!');
+            return;
+        }
+
+        try {
+            const newUser = await authApi.createNewUser(data);
+            toast.success(`Пользователь ${newUser.username} успешно зарегистрирован!`);
+            registerForm.reset(); // Очищаем форму
+
+            // Автоматически переключаем на панель входа
+            authContainer.classList.remove('right-panel-active');
+
+        } catch (error) {
+            toast.error(`Ошибка регистрации: ${error.message}`);
+        }
+    });
 
 
-    signInButton.addEventListener('click', () => {
-        const wrapper = document.getElementById('authModal');
-        const container = wrapper.querySelector('#container');
-        container.classList.remove('right-panel-active');
-    })
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(loginForm);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            await authApi.loginUser(data);
+            toast.success(`Добро пожаловать, ${data.username}!`);
+            // Здесь можно закрыть модальное окно и обновить интерфейс
+            authModal.classList.remove('show');
+            setTimeout(() => authModal.classList.add('hidden'), 300);
+            loginButtonsBlock.classList.add('hidden')
+            outButtons.classList.remove('hidden')
+            outButtons.classList.add('show')
+            // TODO: Обновить UI, показать имя пользователя, скрыть кнопки "Вход/Регистрация"
+        } catch (error) {
+            toast.error(`Ошибка входа: ${error.message}`);
+        }
+    });
+    // НОВЫЙ ОБРАБОТЧИК: Выход из системы
+    logoutBtn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        try {
+            await authApi.logoutUser();
+            toast.info('Вы успешно вышли из системы.');
+            outButtons.classList.remove('show');
+            outButtons.classList.add('hidden');
+            loginButtonsBlock.classList.remove('hidden');
+            loginButtonsBlock.classList.add('show');
+        } catch (error) {
+            toast.error(`Ошибка выхода: ${error.message}`);
+        }
+    });
 }

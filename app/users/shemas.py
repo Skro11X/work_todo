@@ -29,6 +29,10 @@ class CreatUser(UserBase):
         return self
 
 
+class AuthUserResponse(BaseModel):
+    is_auth: bool = True
+
+
 class LoginUser(UserBase):
     password: str = Field(min_length=8, max_length=16, description="Пароль")
 
